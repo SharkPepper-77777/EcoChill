@@ -19,7 +19,8 @@ export default {
   computed: {
     // 从 Vuex Store 获取登录状态
     isLoggedIn() {
-      return this.$store.state.isLoggedIn;
+      //return this.$store.state.isLoggedIn;
+     return true;
     },
   },
 };
@@ -31,14 +32,17 @@ html, body {
   margin: 0; /* 移除默认的外边距 */
   padding: 0; /* 移除默认的填充 */
   height: 100%; /* 确保 body 填满整个视口高度 */
+  background-color: #0a192f; /* 深蓝色背景 */
+  color: #ccd6f6; /* 浅蓝色文字 */
+  font-family: 'Poppins', sans-serif; /* 使用 Google Fonts 字体 */
 }
 
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  height: 100%; /* 确保 #app 填满整个视口高度 */
+  font-family: 'Poppins', sans-serif; /* 使用 Google Fonts 字体 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  height: 100%; /* 确保 #app 填满整个视口高度 */
+  color: #ccd6f6; /* 浅蓝色文字 */
 }
 </style>

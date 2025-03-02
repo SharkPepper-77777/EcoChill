@@ -4,6 +4,7 @@
     <AppSidebar
       :active-menu="activeMenu"
       @menu-change="handleMenuChange"
+       @logout="handleLogout"
     />
 
     <!-- 主内容区域 -->
@@ -12,7 +13,6 @@
       <AppTopbar
         :active-menu-label="activeMenuLabel"
         :username="username"
-        @logout="handleLogout"
       />
 
       <!-- 工作区域 -->

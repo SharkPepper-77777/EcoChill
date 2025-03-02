@@ -63,9 +63,10 @@ export default {
     handleMenuClick(menuName) {
       this.$emit('menu-change', menuName); // 触发菜单切换事件
     },
-    handleLogout() {
-      this.$emit('logout'); // 触发退出登录事件
-    },
+ handleLogout() {
+  console.log('退出登录按钮被点击'); // 检查是否输出
+  this.$emit('logout');
+},
   },
 };
 </script>
