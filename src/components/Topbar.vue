@@ -1,8 +1,26 @@
 <template>
   <div class="topbar">
+    <!-- 左侧：页面标题 -->
     <div class="topbar-left">
       <h2>{{ activeMenuLabel }}</h2>
     </div>
+
+    <!-- 中间：搜索框 -->
+    <div class="topbar-center">
+      <div class="search-box">
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="搜索..."
+          class="search-input"
+        />
+        <button @click="handleSearch" class="search-button">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- 右侧：用户信息 -->
     <div class="topbar-right">
       <div class="user-info">
         <img src="@/assets/user-avatar.jpg" alt="用户头像" class="user-avatar" />
@@ -25,6 +43,18 @@ export default {
       required: true,
     },
   },
+  data() {
+    return {
+      searchQuery: '', // 搜索框内容
+    };
+  },
+  methods: {
+    // 处理搜索
+    handleSearch() {
+      console.log('搜索内容:', this.searchQuery);
+      alert(`搜索内容：${this.searchQuery}`);
+    },
+  },
 };
 </script>
 
@@ -32,7 +62,7 @@ export default {
 .topbar {
   width: 100%;
   height: 60px;
-  background-color: white;
+  background-color: #d6deeb;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -48,9 +78,55 @@ export default {
   font-size: 26px; /* 增大字体大小 */
   font-family: 'Poppins', sans-serif; /* 使用 Google Fonts 字体 */
   font-weight: 700; /* 字体粗细 */
-  color: #1e3a8a; /* 深蓝色 */
+  color: #204677; /* 深蓝色 */
   letter-spacing: 1px; /* 增加字间距 */
   text-transform: uppercase; /* 转换为大写字母 */
+}
+
+.topbar-center {
+  flex: 1; /* 占据剩余空间 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px; /* 左右内边距 */
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 300px; /* 限制搜索框最大宽度 */
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ccc;
+  border-radius: 16px 0 0 16px; /* 左侧圆角增大 */
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: #3b82f6; /* 聚焦时边框颜色 */
+}
+
+.search-button {
+  padding: 8px 12px;
+  background-color: #4273c2;
+  color: white;
+  border: none;
+  border-radius: 0 16px 16px 0; /* 右侧圆角增大 */
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.search-button:hover {
+  background-color: #2f53a2; /* 悬停时背景色 */
 }
 
 .topbar-right {

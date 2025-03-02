@@ -90,7 +90,7 @@ export default {
 .home-container {
   display: flex;
   height: 100vh; /* 确保填满整个视口高度 */
-  background-color: #f5f5f5;
+  background-color: #0a192f;
   margin: 0; /* 移除默认的外边距 */
 }
 
@@ -103,7 +103,7 @@ export default {
 .workspace {
   flex: 1;
   padding: 20px;
-  background-color: white;
+  background-color: #132843;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: 20px;

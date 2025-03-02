@@ -1,7 +1,7 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-header">
-      <h2>导航</h2>
+      <h2>EcoChill</h2>
     </div>
     <ul class="sidebar-menu">
       <li
@@ -73,7 +73,7 @@ export default {
 <style scoped lang="scss">
 .sidebar {
   width: 250px;
-  background: linear-gradient(135deg, #1e3a8a, #3b82f6); /* 渐变色背景 */
+  background: linear-gradient(135deg, #274a76, #2d5e9e); /* 渐变色背景 */
   color: white;
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2); /* 右侧阴影 */
   display: flex;
