@@ -108,5 +108,10 @@ export default {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: 20px;
   margin-top: 20px; /* 移除顶部外边距 */
+  overflow-y:scroll;
+}
+.workspace::-webkit-scrollbar {
+  width: 0px; /* 隐藏横向滚动条 */
+  height: 0px; /* 隐藏纵向滚动条 */
 }
 </style>

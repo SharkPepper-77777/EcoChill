@@ -1,22 +1,33 @@
 <template>
   <div class="data-overview-view">
-    <h1>数据总览</h1>
-    <p>这里是数据总览的内容。</p>
-
     <!-- 图表容器 -->
     <div class="charts-grid">
-      <!-- 柱状图 1 -->
-      <div ref="barChart1" class="chart"></div>
-      <!-- 柱状图 2 -->
-      <div ref="barChart2" class="chart"></div>
-      <!-- 折线图 1 -->
-      <div ref="lineChart1" class="chart"></div>
-      <!-- 折线图 2 -->
-      <div ref="lineChart2" class="chart"></div>
-      <!-- 饼图 1 -->
-      <div ref="pieChart1" class="chart"></div>
-      <!-- 饼图 2 -->
-      <div ref="pieChart2" class="chart"></div>
+      <!-- 柱状图组 -->
+      <div class="chart-group">
+        <h2 class="group-title">柱状图</h2>
+        <div class="group-content">
+          <div ref="barChart1" class="chart"></div>
+          <div ref="barChart2" class="chart"></div>
+        </div>
+      </div>
+
+      <!-- 折线图组 -->
+      <div class="chart-group">
+        <h2 class="group-title">折线图</h2>
+        <div class="group-content">
+          <div ref="lineChart1" class="chart"></div>
+          <div ref="lineChart2" class="chart"></div>
+        </div>
+      </div>
+
+      <!-- 饼图组 -->
+      <div class="chart-group">
+        <h2 class="group-title">饼图</h2>
+        <div class="group-content">
+          <div ref="pieChart1" class="chart"></div>
+          <div ref="pieChart2" class="chart"></div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -49,22 +60,52 @@ export default {
           text: title,
           left: 'center',
           textStyle: {
-            fontSize: 14, // 标题字体大小
+            fontSize: 14,
+            color: '#fff', // 标题颜色
           },
         },
         xAxis: {
           type: 'category',
           data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          axisLine: {
+            lineStyle: {
+              color: '#6c757d', // 坐标轴颜色
+            },
+          },
+          axisLabel: {
+            color: '#fff', // 坐标轴文字颜色
+          },
         },
         yAxis: {
           type: 'value',
+          axisLine: {
+            lineStyle: {
+              color: '#6c757d', // 坐标轴颜色
+            },
+          },
+          axisLabel: {
+            color: '#fff', // 坐标轴文字颜色
+          },
         },
         series: [
           {
             data: [120, 200, 150, 80, 70, 110, 130],
             type: 'bar',
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#00b4ff' }, // 渐变起始颜色
+                { offset: 1, color: '#0066ff' }, // 渐变结束颜色
+              ]),
+            },
           },
         ],
+        grid: {
+          left: '10%',
+          right: '10%',
+          bottom: '15%',
+          containLabel: true,
+        },
+        backgroundColor: 'transparent', // 透明背景
       };
 
       myChart.setOption(option);
@@ -87,22 +128,54 @@ export default {
           text: title,
           left: 'center',
           textStyle: {
-            fontSize: 14, // 标题字体大小
+            fontSize: 14,
+            color: '#fff', // 标题颜色
           },
         },
         xAxis: {
           type: 'category',
           data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+          axisLine: {
+            lineStyle: {
+              color: '#6c757d', // 坐标轴颜色
+            },
+          },
+          axisLabel: {
+            color: '#fff', // 坐标轴文字颜色
+          },
         },
         yAxis: {
           type: 'value',
+          axisLine: {
+            lineStyle: {
+              color: '#6c757d', // 坐标轴颜色
+            },
+          },
+          axisLabel: {
+            color: '#fff', // 坐标轴文字颜色
+          },
         },
         series: [
           {
             data: [120, 200, 150, 80, 70, 110, 130],
             type: 'line',
+            smooth: true, // 平滑曲线
+            lineStyle: {
+              color: '#00ff88', // 线条颜色
+              width: 2,
+            },
+            itemStyle: {
+              color: '#00ff88', // 点颜色
+            },
           },
         ],
+        grid: {
+          left: '10%',
+          right: '10%',
+          bottom: '15%',
+          containLabel: true,
+        },
+        backgroundColor: 'transparent', // 透明背景
       };
 
       myChart.setOption(option);
@@ -125,7 +198,8 @@ export default {
           text: title,
           left: 'center',
           textStyle: {
-            fontSize: 14, // 标题字体大小
+            fontSize: 14,
+            color: '#fff', // 标题颜色
           },
         },
         tooltip: {
@@ -150,8 +224,15 @@ export default {
                 shadowColor: 'rgba(0, 0, 0, 0.5)',
               },
             },
+            itemStyle: {
+              color: function (params) {
+                const colors = ['#00b4ff', '#0066ff', '#00ff88', '#ffcc00', '#ff6666'];
+                return colors[params.dataIndex % colors.length];
+              },
+            },
           },
         ],
+        backgroundColor: 'transparent', // 透明背景
       };
 
       myChart.setOption(option);
@@ -177,24 +258,42 @@ export default {
 <style scoped lang="scss">
 .data-overview-view {
   padding: 20px;
-
-  h1 {
-    font-size: 24px;
-    margin-bottom: 20px;
-  }
+  background-color: #1a1a2e; // 深色背景
+  min-height: 100vh;
+  color: #fff;
 
   .charts-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* 3 列 */
-    gap: 20px; /* 图表之间的间距 */
+    grid-template-columns: repeat(2, 1fr); // 2 列
+    gap: 20px; // 图表之间的间距
   }
 
-  .chart {
-    height: 300px; /* 固定高度 */
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 10px; /* 内边距 */
+  .chart-group {
+    background: linear-gradient(145deg, #16213e, #1a1a2e); // 渐变背景
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+    .group-title {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #00b4ff; // 霓虹蓝色
+      text-align: center;
+    }
+
+    .group-content {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); // 每组内 2 列
+      gap: 16px;
+    }
+
+    .chart {
+      height: 250px; // 固定高度
+      background-color: rgba(255, 255, 255, 0.05); // 半透明背景
+      border-radius: 8px;
+      padding: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
   }
 }
 </style>
