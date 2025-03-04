@@ -1,17 +1,47 @@
 <template>
   <div>
+    <!-- 储能装置参数设置框 -->
+    <div class="storage-settings">
+      <div class="storage-header">
+        <h3>储能装置设置</h3>
+        <div class="param-row">
+          <div class="param-item">
+            <label for="max-ice-storage">最大蓄冰量:</label>
+            <input id="max-ice-storage" type="number" v-model="storageParams.maxIceStorage" />
+          </div>
+          <div class="param-item">
+            <label for="cooling-loss-coefficient">冷量损失系数:</label>
+            <input
+              id="cooling-loss-coefficient"
+              type="number"
+              step="0.001"
+              v-model="storageParams.coolingLossCoefficient"
+            />
+          </div>
+          <div class="param-item">
+            <label for="max-cooling-capacity">最大供冷量:</label>
+            <input
+              id="max-cooling-capacity"
+              type="number"
+              v-model="storageParams.maxCoolingCapacity"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 顶部栏 -->
     <div class="top-bar">
       <span class="label">添加机组</span>
       <select v-model="selectedUnitType">
-        <option value="螺杆">螺杆机组</option>
-        <option value="基载">基载机组</option>
-        <option value="双工况">双工况机组</option>
+        <option value="螺杆">螺杆式冷水机组</option>
+        <option value="基载">基载离心式冷水机组</option>
+        <option value="双工况">双工况离心式冷水机组</option>
       </select>
       <button @click="showModal = true">添加</button>
     </div>
 
-    <!-- 弹窗 -->
+    <!-- 添加机组弹窗 -->
     <div v-if="showModal" class="modal">
       <div class="modal-content">
         <span class="close" @click="showModal = false">&times;</span>
@@ -25,7 +55,14 @@
             <div class="param-row">
               <div v-for="(param, index) in unitParams" :key="index" class="param-item">
                 <label>{{ param.label }}:</label>
-                <input :type="param.type" v-model="param.value" />
+                <template v-if="param.type === 'range'">
+                  <div class="range-inputs">
+                    <input type="number" v-model="param.value.min" placeholder="最小值" />
+                    <span class="range-separator">-</span>
+                    <input type="number" v-model="param.value.max" placeholder="最大值" />
+                  </div>
+                </template>
+                <input v-else :type="param.type" v-model="param.value" />
               </div>
             </div>
           </div>
@@ -35,30 +72,29 @@
             <div class="param-row">
               <div v-for="(param, index) in coolingModeParams" :key="index" class="param-item">
                 <label>{{ param.label }}:</label>
-                <input :type="param.type" v-model="param.value" />
+                <template v-if="param.type === 'range'">
+                  <div class="range-inputs">
+                    <input type="number" v-model="param.value.min" placeholder="最小值" />
+                    <span class="range-separator">-</span>
+                    <input type="number" v-model="param.value.max" placeholder="最大值" />
+                  </div>
+                </template>
+                <input v-else :type="param.type" v-model="param.value" />
               </div>
             </div>
             <h4>制冰模式参数</h4>
             <div class="param-row">
               <div v-for="(param, index) in iceModeParams" :key="index" class="param-item">
                 <label>{{ param.label }}:</label>
-                <input :type="param.type" v-model="param.value" />
+                <template v-if="param.type === 'range'">
+                  <div class="range-inputs">
+                    <input type="number" v-model="param.value.min" placeholder="最小值" />
+                    <span class="range-separator">-</span>
+                    <input type="number" v-model="param.value.max" placeholder="最大值" />
+                  </div>
+                </template>
+                <input v-else :type="param.type" v-model="param.value" />
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 储能装置参数 -->
-        <div class="section">
-          <h3>储能装置参数</h3>
-          <div class="param-row">
-            <div class="param-item">
-              <label>最大蓄冰量:</label>
-              <input type="number" v-model="storageParams.maxIceStorage" />
-            </div>
-            <div class="param-item">
-              <label>冷量损失系数:</label>
-              <input type="number" step="0.001" v-model="storageParams.coolingLossCoefficient" />
             </div>
           </div>
         </div>
@@ -69,7 +105,7 @@
 
     <!-- 机组卡片展示 -->
     <div class="unit-list">
-      <div v-for="unit in units" :key="unit.id" class="unit-card" @click="showEditModal(unit.id)">
+      <div v-for="unit in units" :key="unit.id" class="unit-card" @click="showEditModal(unit)">
         <!-- 顶部：编号和名称 -->
         <div class="card-header">
           <span class="unit-id">#{{ unit.id }}</span>
@@ -86,26 +122,45 @@
             <div class="params-grid">
               <div v-for="(param, index) in unitParams" :key="index" class="param-row">
                 <span class="param-name">{{ param.label }}:</span>
-                <span class="param-value">{{ unit.unitParams[index] }}</span>
+                <span class="param-value">
+                  <template v-if="param.type === 'range'">
+                    {{ unit.unitParams[index].min }} - {{ unit.unitParams[index].max }}
+                  </template>
+                  <template v-else>
+                    {{ unit.unitParams[index] }}
+                  </template>
+                </span>
               </div>
             </div>
           </div>
           <div v-if="unit.type === '双工况'">
             <div v-if="unit.currentMode === 'cooling'">
               <div class="params-grid cooling-mode-params">
-            
                 <div v-for="(param, index) in coolingModeParams" :key="index" class="param-row">
                   <span class="param-name">{{ param.label }}:</span>
-                  <span class="param-value">{{ unit.coolingModeParams[index] }}</span>
+                  <span class="param-value">
+                    <template v-if="param.type === 'range'">
+                      {{ unit.coolingModeParams[index].min }} - {{ unit.coolingModeParams[index].max }}
+                    </template>
+                    <template v-else>
+                      {{ unit.coolingModeParams[index] }}
+                    </template>
+                  </span>
                 </div>
               </div>
             </div>
             <div v-if="unit.currentMode === 'ice'">
               <div class="params-grid ice-mode-params">
-      
                 <div v-for="(param, index) in iceModeParams" :key="index" class="param-row">
                   <span class="param-name">{{ param.label }}:</span>
-                  <span class="param-value">{{ unit.iceModeParams[index] }}</span>
+                  <span class="param-value">
+                    <template v-if="param.type === 'range'">
+                      {{ unit.iceModeParams[index].min }} - {{ unit.iceModeParams[index].max }}
+                    </template>
+                    <template v-else>
+                      {{ unit.iceModeParams[index] }}
+                    </template>
+                  </span>
                 </div>
               </div>
             </div>
@@ -129,7 +184,14 @@
             <div class="param-row">
               <div v-for="(param, index) in unitParams" :key="index" class="param-item">
                 <label>{{ param.label }}:</label>
-                <input :type="param.type" v-model="editUnitParams[index]" />
+                <template v-if="param.type === 'range'">
+                  <div class="range-inputs">
+                    <input type="number" v-model="editUnitParams[index].min" placeholder="最小值" />
+                    <span class="range-separator">-</span>
+                    <input type="number" v-model="editUnitParams[index].max" placeholder="最大值" />
+                  </div>
+                </template>
+                <input v-else :type="param.type" v-model="editUnitParams[index]" />
               </div>
             </div>
           </div>
@@ -138,14 +200,28 @@
             <div class="param-row">
               <div v-for="(param, index) in coolingModeParams" :key="index" class="param-item">
                 <label>{{ param.label }}:</label>
-                <input :type="param.type" v-model="editUnitParams.coolingMode[index]" />
+                <template v-if="param.type === 'range'">
+                  <div class="range-inputs">
+                    <input type="number" v-model="editUnitParams.coolingMode[index].min" placeholder="最小值" />
+                    <span class="range-separator">-</span>
+                    <input type="number" v-model="editUnitParams.coolingMode[index].max" placeholder="最大值" />
+                  </div>
+                </template>
+                <input v-else :type="param.type" v-model="editUnitParams.coolingMode[index]" />
               </div>
             </div>
             <h4>制冰模式参数</h4>
             <div class="param-row">
               <div v-for="(param, index) in iceModeParams" :key="index" class="param-item">
                 <label>{{ param.label }}:</label>
-                <input :type="param.type" v-model="editUnitParams.iceMode[index]" />
+                <template v-if="param.type === 'range'">
+                  <div class="range-inputs">
+                    <input type="number" v-model="editUnitParams.iceMode[index].min" placeholder="最小值" />
+                    <span class="range-separator">-</span>
+                    <input type="number" v-model="editUnitParams.iceMode[index].max" placeholder="最大值" />
+                  </div>
+                </template>
+                <input v-else :type="param.type" v-model="editUnitParams.iceMode[index]" />
               </div>
             </div>
           </div>
@@ -190,7 +266,7 @@ export default {
       unitParams: [
         { label: '额定制冷量', type: 'number', value: 0 },
         { label: '输入功率', type: 'number', value: 0 },
-        { label: 'PLR范围', type: 'range', value: [0, 1] },
+        { label: 'PLR范围', type: 'range', value: { min: 0, max: 1 } }, // 修改为对象
         { label: '泵体数量', type: 'number', value: 0 },
         { label: '泵体耗电量', type: 'number', value: 0 },
         { label: '最大可输送冷量', type: 'number', value: 0 },
@@ -199,7 +275,7 @@ export default {
       coolingModeParams: [
         { label: '额定制冷量', type: 'number', value: 0 },
         { label: '输入功率', type: 'number', value: 0 },
-        { label: 'PLR范围', type: 'range', value: [0, 1] },
+        { label: 'PLR范围', type: 'range', value: { min: 0, max: 1 } }, // 修改为对象
         { label: '泵体数量', type: 'number', value: 0 },
         { label: '泵体耗电量', type: 'number', value: 0 },
         { label: '最大可输送冷量', type: 'number', value: 0 },
@@ -208,7 +284,7 @@ export default {
       iceModeParams: [
         { label: '额定制冷量', type: 'number', value: 0 },
         { label: '输入功率', type: 'number', value: 0 },
-        { label: 'PLR范围', type: 'range', value: [0, 1] },
+        { label: 'PLR范围', type: 'range', value: { min: 0, max: 1 } }, // 修改为对象
         { label: '泵体数量', type: 'number', value: 0 },
         { label: '泵体耗电量', type: 'number', value: 0 },
         { label: '最大可输送冷量', type: 'number', value: 0 },
@@ -229,7 +305,7 @@ export default {
     // 计算占位符数量
     placeholderCount() {
       const remainder = this.units.length % 3;
-      return remainder === 0? 0 : 3 - remainder;
+      return remainder === 0 ? 0 : 3 - remainder;
     },
   },
   methods: {
@@ -254,23 +330,22 @@ export default {
       this.addUnit(unitData);
       this.showModal = false;
     },
-    showEditModal(unitId) {
-      const unit = this.units.find(u => u.id === unitId);
-      if (unit) {
-        this.showEditModalId = unitId;
-        this.editUnitType = unit.type;
-        // 初始化编辑参数
-        if (unit.type === '螺杆' || unit.type === '基载') {
-          this.editUnitParams = [...unit.unitParams];
-        } else if (unit.type === '双工况') {
-          this.editUnitParams = {
-            coolingMode: [...unit.coolingModeParams],
-            iceMode: [...unit.iceModeParams]
-          };
-        }
-        this.editStorageParams = { ...unit.storageParams };
+    // 显示编辑弹窗
+    showEditModal(unit) {
+      this.showEditModalId = unit.id;
+      this.editUnitType = unit.type;
+      // 初始化编辑参数
+      if (unit.type === '螺杆' || unit.type === '基载') {
+        this.editUnitParams = [...unit.unitParams];
+      } else if (unit.type === '双工况') {
+        this.editUnitParams = {
+          coolingMode: [...unit.coolingModeParams],
+          iceMode: [...unit.iceModeParams],
+        };
       }
+      this.editStorageParams = { ...unit.storageParams };
     },
+    // 保存编辑后的机组
     saveEditedUnit() {
       const unitId = this.showEditModalId;
       const unit = this.units.find(u => u.id === unitId);
@@ -285,27 +360,76 @@ export default {
       }
       this.showEditModalId = null;
     },
+    // 删除机组
     deleteUnit() {
       const unitId = this.showEditModalId;
       const index = this.units.findIndex(u => u.id === unitId);
-      if (index!== -1) {
+      if (index !== -1) {
         this.units.splice(index, 1);
       }
       this.showEditModalId = null;
     },
+    // 切换双工况机组的模式
     toggleMode(unit) {
       unit.currentMode = unit.currentMode === 'cooling' ? 'ice' : 'cooling';
-    }
+    },
   },
 };
 </script>
 
-<style scoped>
+<style>
 /* 引入 Google 字体 */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
 body {
   font-family: 'Roboto', sans-serif;
+}
+
+/* 储能装置参数设置框 */
+.storage-settings {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.storage-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.storage-settings h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #333;
+}
+
+.storage-settings .param-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.storage-settings .param-item {
+  flex: 1;
+}
+
+.storage-settings label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #555;
+}
+
+.storage-settings input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
 }
 
 /* 顶部栏 */
@@ -358,7 +482,7 @@ body {
   align-items: center;
 }
 .modal-content {
-  background-color: white;
+  background-color: #E8EEF6;
   padding: 20px;
   border-radius: 8px;
   width: 600px;
@@ -406,12 +530,11 @@ body {
 }
 .unit-card {
   flex: 1 1 calc(33.33% - 20px);
-  border: 1px solid #ddd;
+  border: 1px solid #F4F7FB;
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-  cursor: pointer;
+  background-color: #F4F7FB;
 }
 .unit-card.placeholder {
   visibility: hidden; /* 占位符不可见 */
@@ -431,34 +554,6 @@ body {
   font-size: 16px;
   font-weight: 500;
   color: #333;
-  
-}
-.mode-toggle {
-  display: flex;
-  align-items: center;
-  background-color: #f0f0f0;
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-.mode-toggle:hover {
-  background-color: #e0e0e0;
-}
-.toggle-icon {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: #ccc;
-  margin-left: 8px;
-  transition: background-color 0.3s;
-}
-.mode-toggle[mode="cooling"] .toggle-icon {
-  background-color: #42b983;
-}
-.mode-toggle[mode="ice"] .toggle-icon {
-  background-color: #3498db;
 }
 .card-body {
   margin-bottom: 10px;
@@ -490,61 +585,16 @@ body {
 .card-footer {
   margin-top: 10px;
 }
-
-/* 编辑弹窗 */
-.edit-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+.range-inputs {
   display: flex;
-  justify-content: center;
   align-items: center;
+  gap: 8px;
 }
-.edit-modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  width: 600px;
-  max-height: 80vh;
-  overflow-y: auto;
+.range-inputs input {
+  flex: 1;
+  width: 100%;
 }
-.edit-close {
-  float: right;
-  cursor: pointer;
-  font-size: 24px;
+.range-separator {
   color: #666;
-}
-
-/* 保存和删除按钮样式 */
-.save-button {
-  padding: 10px 20px;
-  background-color: #42b983;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  margin-right: 10px;
-}
-.save-button:hover {
-  background-color: #3aa876;
-}
-
-.delete-button {
-  padding: 10px 20px;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-.delete-button:hover {
-  background-color: #c0392b;
 }
 </style>
