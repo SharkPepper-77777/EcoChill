@@ -1,19 +1,12 @@
 <template>
   <div class="home-container">
     <!-- 侧边栏 -->
-    <AppSidebar
-      :active-menu="activeMenu"
-      @menu-change="handleMenuChange"
-       @logout="handleLogout"
-    />
+    <AppSidebar :active-menu="activeMenu" @menu-change="handleMenuChange" @logout="handleLogout" />
 
     <!-- 主内容区域 -->
     <div class="main-content">
       <!-- 顶部栏 -->
-      <AppTopbar
-        :active-menu-label="activeMenuLabel"
-        :username="username"
-      />
+      <AppTopbar :active-menu-label="activeMenuLabel" :username="username" />
 
       <!-- 工作区域 -->
       <div class="workspace">
@@ -89,9 +82,11 @@ export default {
 <style scoped lang="scss">
 .home-container {
   display: flex;
-  height: 100vh; /* 确保填满整个视口高度 */
-  background-color: #0a192f;
-  margin: 0; /* 移除默认的外边距 */
+  height: 100vh;
+  /* 确保填满整个视口高度 */
+  // background-color: #0a192f;
+  margin: 0;
+  /* 移除默认的外边距 */
 }
 
 .main-content {
@@ -105,13 +100,21 @@ export default {
   padding: 20px;
   background-color: #132843;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: 20px;
-  margin-top: 20px; /* 移除顶部外边距 */
-  overflow-y:scroll;
+  margin-top: 20px;
+  /* 移除顶部外边距 */
+  overflow-y: scroll;
+  background-image: url('@/assets/workspace-bg.jpg'); // 添加背景图片
+  background-size: cover; // 使背景图片覆盖整个容器
+  background-position: center; // 背景图片居中
+  background-repeat: no-repeat; // 不重复背景图片
 }
+
 .workspace::-webkit-scrollbar {
-  width: 0px; /* 隐藏横向滚动条 */
-  height: 0px; /* 隐藏纵向滚动条 */
+  width: 0px;
+  /* 隐藏横向滚动条 */
+  height: 0px;
+  /* 隐藏纵向滚动条 */
 }
 </style>
