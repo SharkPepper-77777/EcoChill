@@ -1,42 +1,12 @@
 <template>
   <div>
-    <!-- 储能装置参数设置框 -->
-    <div class="storage-settings">
-      <div class="storage-header">
-        <h3>储能装置设置</h3>
-        <div class="param-row">
-          <div class="param-item">
-            <label for="max-ice-storage">最大蓄冰量:</label>
-            <input id="max-ice-storage" type="number" v-model="storageParams.maxIceStorage" />
-          </div>
-          <div class="param-item">
-            <label for="cooling-loss-coefficient">冷量损失系数:</label>
-            <input
-              id="cooling-loss-coefficient"
-              type="number"
-              step="0.001"
-              v-model="storageParams.coolingLossCoefficient"
-            />
-          </div>
-          <div class="param-item">
-            <label for="max-cooling-capacity">最大供冷量:</label>
-            <input
-              id="max-cooling-capacity"
-              type="number"
-              v-model="storageParams.maxCoolingCapacity"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- 顶部栏 -->
     <div class="top-bar">
       <span class="label">添加机组</span>
       <select v-model="selectedUnitType">
-        <option value="螺杆">螺杆式冷水机组</option>
-        <option value="基载">基载离心式冷水机组</option>
-        <option value="双工况">双工况离心式冷水机组</option>
+        <option value="螺杆">螺杆机组</option>
+        <option value="基载">基载机组</option>
+        <option value="双工况">双工况机组</option>
       </select>
       <button @click="showModal = true">添加</button>
     </div>
@@ -53,26 +23,9 @@
           <!-- 螺杆和基载机组 -->
           <div v-if="selectedUnitType === '螺杆' || selectedUnitType === '基载'">
             <div class="param-row">
-              <div v-for="param in unitParams" :key="param.name" class="param-item">
-                <label :for="param.name">{{ param.label }}:</label>
-                <template v-if="param.type === 'range'">
-                  <div class="range-inputs">
-                    <input
-                      type="number"
-                      :id="`${param.name}-min`"
-                      v-model="param.value[0]"
-                      placeholder="最小值"
-                    />
-                    <span class="range-separator">~</span>
-                    <input
-                      type="number"
-                      :id="`${param.name}-max`"
-                      v-model="param.value[1]"
-                      placeholder="最大值"
-                    />
-                  </div>
-                </template>
-                <input v-else :type="param.type" :id="param.name" v-model="param.value" />
+              <div v-for="(param, index) in unitParams" :key="index" class="param-item">
+                <label>{{ param.label }}:</label>
+                <input :type="param.type" v-model="param.value" />
               </div>
             </div>
           </div>
@@ -80,264 +33,279 @@
           <div v-if="selectedUnitType === '双工况'">
             <h4>制冷模式参数</h4>
             <div class="param-row">
-              <div v-for="param in coolingModeParams" :key="param.name" class="param-item">
-                <label :for="param.name">{{ param.label }}:</label>
-                <template v-if="param.type === 'range'">
-                  <div class="range-inputs">
-                    <input
-                      type="number"
-                      :id="`${param.name}-min`"
-                      v-model="param.value[0]"
-                      placeholder="最小值"
-                    />
-                    <span class="range-separator">~</span>
-                    <input
-                      type="number"
-                      :id="`${param.name}-max`"
-                      v-model="param.value[1]"
-                      placeholder="最大值"
-                    />
-                  </div>
-                </template>
-                <input v-else :type="param.type" :id="param.name" v-model="param.value" />
+              <div v-for="(param, index) in coolingModeParams" :key="index" class="param-item">
+                <label>{{ param.label }}:</label>
+                <input :type="param.type" v-model="param.value" />
               </div>
             </div>
             <h4>制冰模式参数</h4>
             <div class="param-row">
-              <div v-for="param in iceModeParams" :key="param.name" class="param-item">
-                <label :for="param.name">{{ param.label }}:</label>
-                <template v-if="param.type === 'range'">
-                  <div class="range-inputs">
-                    <input
-                      type="number"
-                      :id="`${param.name}-min`"
-                      v-model="param.value[0]"
-                      placeholder="最小值"
-                    />
-                    <span class="range-separator">~</span>
-                    <input
-                      type="number"
-                      :id="`${param.name}-max`"
-                      v-model="param.value[1]"
-                      placeholder="最大值"
-                    />
-                  </div>
-                </template>
-                <input v-else :type="param.type" :id="param.name" v-model="param.value" />
+              <div v-for="(param, index) in iceModeParams" :key="index" class="param-item">
+                <label>{{ param.label }}:</label>
+                <input :type="param.type" v-model="param.value" />
               </div>
             </div>
           </div>
         </div>
 
-        <button @click="saveUnit">保存</button>
+        <!-- 储能装置参数 -->
+        <div class="section">
+          <h3>储能装置参数</h3>
+          <div class="param-row">
+            <div class="param-item">
+              <label>最大蓄冰量:</label>
+              <input type="number" v-model="storageParams.maxIceStorage" />
+            </div>
+            <div class="param-item">
+              <label>冷量损失系数:</label>
+              <input type="number" step="0.001" v-model="storageParams.coolingLossCoefficient" />
+            </div>
+          </div>
+        </div>
+
+        <button class="save-button" @click="saveUnit">保存</button>
       </div>
     </div>
 
     <!-- 机组卡片展示 -->
     <div class="unit-list">
-  <div v-for="unit in units" :key="unit.id" class="unit-card">
-    <div class="card-header">
-      <span class="unit-id">#{{ unit.id }}</span>
-      <span class="unit-name">{{ unit.name }}</span>
-    </div>
+      <div v-for="unit in units" :key="unit.id" class="unit-card" @click="showEditModal(unit.id)">
+        <!-- 顶部：编号和名称 -->
+        <div class="card-header">
+          <span class="unit-id">#{{ unit.id }}</span>
+          <span class="unit-name">{{ unit.name }}</span>
+          <div v-if="unit.type === '双工况'" class="mode-toggle" @click.stop="toggleMode(unit)">
+            <span>{{ unit.currentMode === 'cooling' ? '制冷模式' : '制冰模式' }}</span>
+            <i class="toggle-icon"></i>
+          </div>
+        </div>
 
-    <div class="card-body">
-      <div class="unit-type">类型: {{ unit.type }}</div>
+        <!-- 底部：机组参数 -->
+        <div class="card-footer">
+          <div v-if="unit.type === '螺杆' || unit.type === '基载'">
+            <div class="params-grid">
+              <div v-for="(param, index) in unitParams" :key="index" class="param-row">
+                <span class="param-name">{{ param.label }}:</span>
+                <span class="param-value">{{ unit.unitParams[index] }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-if="unit.type === '双工况'">
+            <div v-if="unit.currentMode === 'cooling'">
+              <div class="params-grid cooling-mode-params">
+            
+                <div v-for="(param, index) in coolingModeParams" :key="index" class="param-row">
+                  <span class="param-name">{{ param.label }}:</span>
+                  <span class="param-value">{{ unit.coolingModeParams[index] }}</span>
+                </div>
+              </div>
+            </div>
+            <div v-if="unit.currentMode === 'ice'">
+              <div class="params-grid ice-mode-params">
       
-      <!-- 通用参数（螺杆和基载） -->
-      <div v-if="unit.type !== '双工况'">
-        <div class="params-grid">
-          <div v-for="(value, key) in unit.unitParams" :key="key" class="param-row">
-            <span class="param-name">{{ key }}:</span>
-            <span class="param-value">{{ formatParamValue(value) }}</span>
+                <div v-for="(param, index) in iceModeParams" :key="index" class="param-row">
+                  <span class="param-name">{{ param.label }}:</span>
+                  <span class="param-value">{{ unit.iceModeParams[index] }}</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- 双工况参数 -->
-      <div v-else>
-        <h4>制冷模式参数</h4>
-        <div class="params-grid">
-          <div v-for="(value, key) in unit.coolingModeParams" :key="key" class="param-row">
-            <span class="param-name">{{ key }}:</span>
-            <span class="param-value">{{ formatParamValue(value) }}</span>
-          </div>
-        </div>
+      <!-- 占位符填充 -->
+      <div v-for="i in placeholderCount" :key="`placeholder-${i}`" class="unit-card placeholder"></div>
+    </div>
 
-        <h4>制冰模式参数</h4>
-        <div class="params-grid">
-          <div v-for="(value, key) in unit.iceModeParams" :key="key" class="param-row">
-            <span class="param-name">{{ key }}:</span>
-            <span class="param-value">{{ formatParamValue(value) }}</span>
+    <!-- 编辑弹窗 -->
+    <div v-if="showEditModalId" class="edit-modal">
+      <div class="edit-modal-content">
+        <span class="edit-close" @click="showEditModalId = null">&times;</span>
+        <h2>编辑机组参数</h2>
+        <div class="section">
+          <h3>机组参数</h3>
+          <!-- 根据机组类型动态显示参数 -->
+          <div v-if="editUnitType === '螺杆' || editUnitType === '基载'">
+            <div class="param-row">
+              <div v-for="(param, index) in unitParams" :key="index" class="param-item">
+                <label>{{ param.label }}:</label>
+                <input :type="param.type" v-model="editUnitParams[index]" />
+              </div>
+            </div>
+          </div>
+          <div v-if="editUnitType === '双工况'">
+            <h4>制冷模式参数</h4>
+            <div class="param-row">
+              <div v-for="(param, index) in coolingModeParams" :key="index" class="param-item">
+                <label>{{ param.label }}:</label>
+                <input :type="param.type" v-model="editUnitParams.coolingMode[index]" />
+              </div>
+            </div>
+            <h4>制冰模式参数</h4>
+            <div class="param-row">
+              <div v-for="(param, index) in iceModeParams" :key="index" class="param-item">
+                <label>{{ param.label }}:</label>
+                <input :type="param.type" v-model="editUnitParams.iceMode[index]" />
+              </div>
+            </div>
           </div>
         </div>
+        <div class="section">
+          <h3>储能装置参数</h3>
+          <div class="param-row">
+            <div class="param-item">
+              <label>最大蓄冰量:</label>
+              <input type="number" v-model="editStorageParams.maxIceStorage" />
+            </div>
+            <div class="param-item">
+              <label>冷量损失系数:</label>
+              <input type="number" step="0.001" v-model="editStorageParams.coolingLossCoefficient" />
+            </div>
+          </div>
+        </div>
+        <button class="save-button" @click="saveEditedUnit">保存</button>
+        <button class="delete-button" @click="deleteUnit">删除</button>
       </div>
     </div>
-  </div>
-
-  <!-- 占位符填充 -->
-  <div v-for="i in placeholderCount" :key="`placeholder-${i}`" class="unit-card placeholder"></div>
-</div>
   </div>
 </template>
 
 <script>
+import { mapGetters, mapActions } from 'vuex';
+
 export default {
   data() {
     return {
       selectedUnitType: '螺杆', // 默认选择螺杆机组
-      showModal: false, // 控制弹窗显示
+      showModal: false, // 控制添加弹窗显示
+      showEditModalId: null, // 控制编辑弹窗显示，存储当前编辑机组的id
+      editUnitType: null, // 存储当前编辑机组的类型
+      // 用于存储编辑中的机组参数，初始化为空对象
+      editUnitParams: {},
+      editStorageParams: {
+        maxIceStorage: 0,
+        coolingLossCoefficient: 0.001,
+      },
       // 螺杆和基载机组参数
       unitParams: [
-        { name: 'param1', label: '额定制冷量', type: 'number', value: 0 },
-        { name: 'param2', label: '输入功率', type: 'number', value: 0 },
-        { name: 'param3', label: 'PLR范围', type: 'range', value: [0, 1] }, // 修改为范围类型
-        { name: 'param4', label: '泵体数量', type: 'number', value: 0 },
-        { name: 'param5', label: '泵体耗电量', type: 'number', value: 0 },
-        { name: 'param6', label: '最大可输送冷量', type: 'number', value: 0 },
+        { label: '额定制冷量', type: 'number', value: 0 },
+        { label: '输入功率', type: 'number', value: 0 },
+        { label: 'PLR范围', type: 'range', value: [0, 1] },
+        { label: '泵体数量', type: 'number', value: 0 },
+        { label: '泵体耗电量', type: 'number', value: 0 },
+        { label: '最大可输送冷量', type: 'number', value: 0 },
       ],
       // 双工况机组制冷模式参数
       coolingModeParams: [
-        { name: 'param1', label: '额定制冷量', type: 'number', value: 0 },
-        { name: 'param2', label: '输入功率', type: 'number', value: 0 },
-        { name: 'param3', label: 'PLR范围', type: 'range', value: [0, 1] }, // 修改为范围类型
-        { name: 'param4', label: '泵体数量', type: 'number', value: 0 },
-        { name: 'param5', label: '泵体耗电量', type: 'number', value: 0 },
-        { name: 'param6', label: '最大可输送冷量', type: 'number', value: 0 },
-        
+        { label: '额定制冷量', type: 'number', value: 0 },
+        { label: '输入功率', type: 'number', value: 0 },
+        { label: 'PLR范围', type: 'range', value: [0, 1] },
+        { label: '泵体数量', type: 'number', value: 0 },
+        { label: '泵体耗电量', type: 'number', value: 0 },
+        { label: '最大可输送冷量', type: 'number', value: 0 },
       ],
       // 双工况机组制冰模式参数
       iceModeParams: [
-        { name: 'param1', label: '额定制冷量', type: 'number', value: 0 },
-        { name: 'param2', label: '输入功率', type: 'number', value: 0 },
-        { name: 'param3', label: 'PLR范围', type: 'range', value: [0, 1] }, // 修改为范围类型
-        { name: 'param4', label: '泵体数量', type: 'number', value: 0 },
-        { name: 'param5', label: '泵体耗电量', type: 'number', value: 0 },
-        { name: 'param6', label: '最大可输送冷量', type: 'number', value: 0 },
+        { label: '额定制冷量', type: 'number', value: 0 },
+        { label: '输入功率', type: 'number', value: 0 },
+        { label: 'PLR范围', type: 'range', value: [0, 1] },
+        { label: '泵体数量', type: 'number', value: 0 },
+        { label: '泵体耗电量', type: 'number', value: 0 },
+        { label: '最大可输送冷量', type: 'number', value: 0 },
       ],
       // 储能装置参数
       storageParams: {
         maxIceStorage: 0,
         coolingLossCoefficient: 0.001,
-        maxCoolingCapacity: 0, // 新增最大供冷量
       },
-      // 机组列表
-      units: [],
       nextUnitId: 1, // 用于生成机组编号
     };
   },
   computed: {
+    ...mapGetters(['getUnits']),
+    units() {
+      return this.getUnits;
+    },
     // 计算占位符数量
     placeholderCount() {
       const remainder = this.units.length % 3;
-      return remainder === 0 ? 0 : 3 - remainder;
+      return remainder === 0? 0 : 3 - remainder;
     },
   },
   methods: {
+    ...mapActions(['addUnit']),
     // 保存机组
-    // 修改后的saveUnit方法
-saveUnit() {
-  const unitData = {
-    id: this.nextUnitId++,
-    name: `${this.selectedUnitType}机组${this.nextUnitId}`,
-    type: this.selectedUnitType,
-    storageParams: { ...this.storageParams }
-  };
+    saveUnit() {
+      const unitData = {
+        id: this.nextUnitId++,
+        name: `机组${this.nextUnitId}`,
+        type: this.selectedUnitType,
+        storageParams: { ...this.storageParams },
+      };
 
-  if (this.selectedUnitType === '螺杆' || this.selectedUnitType === '基载') {
-    unitData.unitParams = this.unitParams.reduce((acc, param) => {
-      acc[param.label] = param.value;
-      return acc;
-    }, {});
-  } else if (this.selectedUnitType === '双工况') {
-    unitData.coolingModeParams = this.coolingModeParams.reduce((acc, param) => {
-      acc[param.label] = param.value;
-      return acc;
-    }, {});
-    unitData.iceModeParams = this.iceModeParams.reduce((acc, param) => {
-      acc[param.label] = param.value;
-      return acc;
-    }, {});
-  }
+      if (this.selectedUnitType === '螺杆' || this.selectedUnitType === '基载') {
+        unitData.unitParams = this.unitParams.map(param => param.value);
+      } else if (this.selectedUnitType === '双工况') {
+        unitData.coolingModeParams = this.coolingModeParams.map(param => param.value);
+        unitData.iceModeParams = this.iceModeParams.map(param => param.value);
+        unitData.currentMode = 'cooling'; // 双工况机组默认初始模式为制冷模式
+      }
 
-  this.units.push(unitData);
-  this.showModal = false;
-  this.resetParams(); // 添加重置参数的方法
-},
-methods: {
-  formatParamValue(value) {
-    return Array.isArray(value) ? value.join(' ~ ') : value;
-  },
-  resetParams() {
-    // 重置所有参数输入框
-    this.unitParams.forEach(param => {
-      param.value = param.type === 'range' ? [0, 1] : 0;
-    });
-    this.coolingModeParams.forEach(param => {
-      param.value = param.type === 'range' ? [0, 1] : 0;
-    });
-    this.iceModeParams.forEach(param => {
-      param.value = param.type === 'range' ? [0, 1] : 0;
-    });
-  }
-}
+      this.addUnit(unitData);
+      this.showModal = false;
+    },
+    showEditModal(unitId) {
+      const unit = this.units.find(u => u.id === unitId);
+      if (unit) {
+        this.showEditModalId = unitId;
+        this.editUnitType = unit.type;
+        // 初始化编辑参数
+        if (unit.type === '螺杆' || unit.type === '基载') {
+          this.editUnitParams = [...unit.unitParams];
+        } else if (unit.type === '双工况') {
+          this.editUnitParams = {
+            coolingMode: [...unit.coolingModeParams],
+            iceMode: [...unit.iceModeParams]
+          };
+        }
+        this.editStorageParams = { ...unit.storageParams };
+      }
+    },
+    saveEditedUnit() {
+      const unitId = this.showEditModalId;
+      const unit = this.units.find(u => u.id === unitId);
+      if (unit) {
+        if (unit.type === '螺杆' || unit.type === '基载') {
+          unit.unitParams = [...this.editUnitParams];
+        } else if (unit.type === '双工况') {
+          unit.coolingModeParams = [...this.editUnitParams.coolingMode];
+          unit.iceModeParams = [...this.editUnitParams.iceMode];
+        }
+        unit.storageParams = { ...this.editStorageParams };
+      }
+      this.showEditModalId = null;
+    },
+    deleteUnit() {
+      const unitId = this.showEditModalId;
+      const index = this.units.findIndex(u => u.id === unitId);
+      if (index!== -1) {
+        this.units.splice(index, 1);
+      }
+      this.showEditModalId = null;
+    },
+    toggleMode(unit) {
+      unit.currentMode = unit.currentMode === 'cooling' ? 'ice' : 'cooling';
+    }
   },
 };
 </script>
 
-<style>
+<style scoped>
 /* 引入 Google 字体 */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
 
 body {
   font-family: 'Roboto', sans-serif;
-}
-
-/* 储能装置参数设置框 */
-.storage-settings {
-  margin-bottom: 30px;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.storage-header {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.storage-settings h3 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 500;
-  color: #333;
-}
-
-.storage-settings .param-row {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.storage-settings .param-item {
-  flex: 1;
-}
-
-.storage-settings label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 14px;
-  color: #555;
-}
-
-.storage-settings input {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
 }
 
 /* 顶部栏 */
@@ -390,7 +358,7 @@ body {
   align-items: center;
 }
 .modal-content {
-  background-color: #E8EEF6;
+  background-color: white;
   padding: 20px;
   border-radius: 8px;
   width: 600px;
@@ -438,11 +406,12 @@ body {
 }
 .unit-card {
   flex: 1 1 calc(33.33% - 20px);
-  border: 1px solid #F4F7FB;
+  border: 1px solid #ddd;
   padding: 15px;
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  background-color: #F4F7FB;
+  background-color: #fff;
+  cursor: pointer;
 }
 .unit-card.placeholder {
   visibility: hidden; /* 占位符不可见 */
@@ -462,6 +431,34 @@ body {
   font-size: 16px;
   font-weight: 500;
   color: #333;
+  
+}
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  background-color: #f0f0f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.mode-toggle:hover {
+  background-color: #e0e0e0;
+}
+.toggle-icon {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin-left: 8px;
+  transition: background-color 0.3s;
+}
+.mode-toggle[mode="cooling"] .toggle-icon {
+  background-color: #42b983;
+}
+.mode-toggle[mode="ice"] .toggle-icon {
+  background-color: #3498db;
 }
 .card-body {
   margin-bottom: 10px;
@@ -493,16 +490,61 @@ body {
 .card-footer {
   margin-top: 10px;
 }
-.range-inputs {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.range-inputs input {
-  flex: 1;
+
+/* 编辑弹窗 */
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.range-separator {
+.edit-modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.edit-close {
+  float: right;
+  cursor: pointer;
+  font-size: 24px;
   color: #666;
+}
+
+/* 保存和删除按钮样式 */
+.save-button {
+  padding: 10px 20px;
+  background-color: #42b983;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-right: 10px;
+}
+.save-button:hover {
+  background-color: #3aa876;
+}
+
+.delete-button {
+  padding: 10px 20px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.delete-button:hover {
+  background-color: #c0392b;
 }
 </style>
