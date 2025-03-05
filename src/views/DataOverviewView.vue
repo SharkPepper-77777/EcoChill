@@ -1,34 +1,48 @@
 <template>
-  <div class="data-overview-view">
-    <!-- 图表容器 -->
-    <div class="charts-grid">
-      <!-- 柱状图组 -->
-      <div class="chart-group">
-        <h2 class="group-title">柱状图</h2>
-        <div class="group-content">
-          <div ref="barChart1" class="chart"></div>
-          <div ref="barChart2" class="chart"></div>
+  <!-- 上半部分 -->
+  <div class="upper-section">
+    <!-- 左侧区域 -->
+    <div class="left-section">
+      <!-- 三个数据展示 -->
+      <div class="data-display">
+        <div class="data-item">
+          <span class="data-label">总制冷</span>
+          <span class="data-value">15678</span>
+        </div>
+        <div class="data-item">
+          <span class="data-label">总用电量</span>
+          <span class="data-value">2345</span>
+        </div>
+        <div class="data-item">
+          <span class="data-label">用电成本</span>
+          <span class="data-value">163</span>
         </div>
       </div>
-
-      <!-- 折线图组 -->
-      <div class="chart-group">
-        <h2 class="group-title">折线图</h2>
-        <div class="group-content">
-          <div ref="lineChart1" class="chart"></div>
-          <div ref="lineChart2" class="chart"></div>
+      <!-- 机组总数和饼图 -->
+      <div class="unit-pie-container">
+        <div class="unit-count">
+          <span class="data-label">机组总数</span>
+          <span class="data-value">7</span>
         </div>
-      </div>
-
-      <!-- 饼图组 -->
-      <div class="chart-group">
-        <h2 class="group-title">饼图</h2>
-        <div class="group-content">
-          <div ref="pieChart1" class="chart"></div>
-          <div ref="pieChart2" class="chart"></div>
-        </div>
+        <div ref="pieChart" class="pie-chart"></div>
       </div>
     </div>
+    <!-- 右侧区域：24H 制冷折线图 -->
+    <div class="right-section">
+      <div ref="coolingLineChart" class="chart"></div>
+    </div>
+  </div>
+
+  <!-- 下半部分 -->
+  <div class="lower-section">
+    <!-- 24h 购电量折线图 -->
+    <div ref="purchaseLineChart" class="chart"></div>
+    <!-- 24h 开关设备情况柱状图 -->
+    <div ref="equipmentBarChart" class="chart"></div>
+    <!-- 24h 购电成本折线图 -->
+    <div ref="costLineChart" class="chart"></div>
+    <!-- 24h 蓄冰量折线图 -->
+    <div ref="iceLineChart" class="chart"></div>
   </div>
 </template>
 
@@ -38,184 +52,52 @@ import * as echarts from 'echarts';
 export default {
   name: 'DataOverviewView',
   mounted() {
-    this.initCharts(); // 初始化图表
+    this.initCharts();
+    window.addEventListener('resize', this.resizeCharts);
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.resizeCharts);
   },
   methods: {
-    // 初始化所有图表
     initCharts() {
-      this.initBarChart(this.$refs.barChart1, '柱状图 1');
-      this.initBarChart(this.$refs.barChart2, '柱状图 2');
-      this.initLineChart(this.$refs.lineChart1, '折线图 1');
-      this.initLineChart(this.$refs.lineChart2, '折线图 2');
-      this.initPieChart(this.$refs.pieChart1, '饼图 1');
-      this.initPieChart(this.$refs.pieChart2, '饼图 2');
+      this.pieChart = echarts.init(this.$refs.pieChart);
+      this.coolingLineChart = echarts.init(this.$refs.coolingLineChart);
+      this.purchaseLineChart = echarts.init(this.$refs.purchaseLineChart);
+      this.equipmentBarChart = echarts.init(this.$refs.equipmentBarChart);
+      this.costLineChart = echarts.init(this.$refs.costLineChart);
+      this.iceLineChart = echarts.init(this.$refs.iceLineChart);
+
+      this.initPieChart();
+      this.initCoolingLineChart();
+      this.initPurchaseLineChart();
+      this.initEquipmentBarChart();
+      this.initCostLineChart();
+      this.initIceLineChart();
     },
-
-    // 初始化柱状图
-    initBarChart(chartDom, title) {
-      const myChart = echarts.init(chartDom);
-
-      const option = {
-        title: {
-          text: title,
-          left: 'center',
-          textStyle: {
-            fontSize: 14,
-            color: '#fff', // 标题颜色
-          },
-        },
-        xAxis: {
-          type: 'category',
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          axisLine: {
-            lineStyle: {
-              color: '#6c757d', // 坐标轴颜色
-            },
-          },
-          axisLabel: {
-            color: '#fff', // 坐标轴文字颜色
-          },
-        },
-        yAxis: {
-          type: 'value',
-          axisLine: {
-            lineStyle: {
-              color: '#6c757d', // 坐标轴颜色
-            },
-          },
-          axisLabel: {
-            color: '#fff', // 坐标轴文字颜色
-          },
-        },
-        series: [
-          {
-            data: [120, 200, 150, 80, 70, 110, 130],
-            type: 'bar',
-            itemStyle: {
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                { offset: 0, color: '#00b4ff' }, // 渐变起始颜色
-                { offset: 1, color: '#0066ff' }, // 渐变结束颜色
-              ]),
-            },
-          },
-        ],
-        grid: {
-          left: '10%',
-          right: '10%',
-          bottom: '15%',
-          containLabel: true,
-        },
-        backgroundColor: 'transparent', // 透明背景
-      };
-
-      myChart.setOption(option);
-
-      // 动态更新柱状图数据
-      setInterval(() => {
-        const newData = Array.from({ length: 7 }, () => Math.random() * 200);
-        myChart.setOption({
-          series: [{ data: newData }],
-        });
-      }, 2000);
+    resizeCharts() {
+      this.pieChart.resize();
+      this.coolingLineChart.resize();
+      this.purchaseLineChart.resize();
+      this.equipmentBarChart.resize();
+      this.costLineChart.resize();
+      this.iceLineChart.resize();
     },
-
-    // 初始化折线图
-    initLineChart(chartDom, title) {
-      const myChart = echarts.init(chartDom);
-
-      const option = {
-        title: {
-          text: title,
-          left: 'center',
-          textStyle: {
-            fontSize: 14,
-            color: '#fff', // 标题颜色
-          },
-        },
-        xAxis: {
-          type: 'category',
-          data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-          axisLine: {
-            lineStyle: {
-              color: '#6c757d', // 坐标轴颜色
-            },
-          },
-          axisLabel: {
-            color: '#fff', // 坐标轴文字颜色
-          },
-        },
-        yAxis: {
-          type: 'value',
-          axisLine: {
-            lineStyle: {
-              color: '#6c757d', // 坐标轴颜色
-            },
-          },
-          axisLabel: {
-            color: '#fff', // 坐标轴文字颜色
-          },
-        },
-        series: [
-          {
-            data: [120, 200, 150, 80, 70, 110, 130],
-            type: 'line',
-            smooth: true, // 平滑曲线
-            lineStyle: {
-              color: '#00ff88', // 线条颜色
-              width: 2,
-            },
-            itemStyle: {
-              color: '#00ff88', // 点颜色
-            },
-          },
-        ],
-        grid: {
-          left: '10%',
-          right: '10%',
-          bottom: '15%',
-          containLabel: true,
-        },
-        backgroundColor: 'transparent', // 透明背景
-      };
-
-      myChart.setOption(option);
-
-      // 动态更新折线图数据
-      setInterval(() => {
-        const newData = Array.from({ length: 7 }, () => Math.random() * 200);
-        myChart.setOption({
-          series: [{ data: newData }],
-        });
-      }, 2000);
-    },
-
     // 初始化饼图
-    initPieChart(chartDom, title) {
-      const myChart = echarts.init(chartDom);
-
+    initPieChart() {
+      const pieChart = echarts.init(this.$refs.pieChart);
       const option = {
-        title: {
-          text: title,
-          left: 'center',
-          textStyle: {
-            fontSize: 14,
-            color: '#fff', // 标题颜色
-          },
-        },
         tooltip: {
           trigger: 'item',
         },
         series: [
           {
-            name: '访问来源',
+            name: '机组组成',
             type: 'pie',
-            radius: '50%',
+            radius: '60%',
             data: [
-              { value: 1048, name: '搜索引擎' },
-              { value: 735, name: '直接访问' },
-              { value: 580, name: '邮件营销' },
-              { value: 484, name: '联盟广告' },
-              { value: 300, name: '视频广告' },
+              { value: 3, name: '机组A', itemStyle: { color: '#00ff88' } },
+              { value: 2, name: '机组B', itemStyle: { color: '#ffcc00' } },
+              { value: 2, name: '机组C', itemStyle: { color: '#00b4ff' } },
             ],
             emphasis: {
               itemStyle: {
@@ -224,76 +106,415 @@ export default {
                 shadowColor: 'rgba(0, 0, 0, 0.5)',
               },
             },
-            itemStyle: {
-              color: function (params) {
-                const colors = ['#00b4ff', '#0066ff', '#00ff88', '#ffcc00', '#ff6666'];
-                return colors[params.dataIndex % colors.length];
-              },
+            label: {
+              show: true, // 显示标签
+              color: '#fff',
+              fontSize: 12,
+              // 可以根据需要调整标签位置，如设置为 'outside' 显示在饼图外侧
+              position: 'outside',
             },
+            labelLine: {
+              length: 20, // 标签线长度
+              length2: 10, // 第二段标签线长度，可按需调整
+              smooth: 0.2 // 标签线弯曲度
+            },
+            backgroundColor: 'transparent',
           },
         ],
-        backgroundColor: 'transparent', // 透明背景
       };
-
-      myChart.setOption(option);
-
-      // 动态更新饼图数据
-      setInterval(() => {
-        const newData = [
-          { value: Math.random() * 1000, name: '搜索引擎' },
-          { value: Math.random() * 1000, name: '直接访问' },
-          { value: Math.random() * 1000, name: '邮件营销' },
-          { value: Math.random() * 1000, name: '联盟广告' },
-          { value: Math.random() * 1000, name: '视频广告' },
-        ];
-        myChart.setOption({
-          series: [{ data: newData }],
-        });
-      }, 2000);
+      pieChart.setOption(option);
     },
-  },
+    // 初始化 24H 制冷折线图
+    initCoolingLineChart() {
+      const option = {
+        title: {
+          text: '24H 制冷',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#fff',
+            fontWeight: 'bold'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        series: [
+          {
+            data: [120, 200, 150, 80, 70, 110, 130],
+            type: 'line',
+            smooth: true,
+            lineStyle: { color: '#00c853', width: 2 },
+            itemStyle: { color: '#00c853', borderWidth: 2, borderColor: '#fff' },
+            symbol: 'circle',
+            symbolSize: 8,
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(0, 200, 83, 0.3)' },
+                { offset: 1, color: 'rgba(0, 200, 83, 0)' }
+              ])
+            }
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+        backgroundColor: 'transparent'
+      };
+      this.coolingLineChart.setOption(option);
+    },
+    // 初始化 24h 购电量折线图
+    initPurchaseLineChart() {
+      const option = {
+        title: {
+          text: '24h 购电量',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#fff',
+            fontWeight: 'bold'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        series: [
+          {
+            data: [50, 80, 70, 90, 60, 100, 120],
+            type: 'line',
+            smooth: true,
+            lineStyle: { color: '#ffd600', width: 2 },
+            itemStyle: { color: '#ffd600', borderWidth: 2, borderColor: '#fff' },
+            symbol: 'circle',
+            symbolSize: 8,
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(255, 214, 0, 0.3)' },
+                { offset: 1, color: 'rgba(255, 214, 0, 0)' }
+              ])
+            }
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+        backgroundColor: 'transparent'
+      };
+      this.purchaseLineChart.setOption(option);
+    },
+    // 初始化 24h 开关设备情况柱状图
+    initEquipmentBarChart() {
+      const option = {
+        title: {
+          text: '24h 开关设备情况',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#fff',
+            fontWeight: 'bold'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        series: [
+          {
+            name: '机组A',
+            type: 'bar',
+            stack: '机组',
+            itemStyle: {
+              color: '#00c853',
+              barBorderRadius: [3, 3, 0, 0],
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowBlur: 5,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            },
+            data: [1, 1, 0, 1, 0, 1, 1]
+          },
+          {
+            name: '机组B',
+            type: 'bar',
+            stack: '机组',
+            itemStyle: {
+              color: '#ffd600',
+              barBorderRadius: [3, 3, 0, 0],
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowBlur: 5,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            },
+            data: [0, 1, 1, 0, 1, 0, 1]
+          },
+          {
+            name: '机组C',
+            type: 'bar',
+            stack: '机组',
+            itemStyle: {
+              color: '#0091ea',
+              barBorderRadius: [3, 3, 0, 0],
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowBlur: 5,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            },
+            data: [1, 0, 1, 1, 0, 1, 0]
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+        backgroundColor: 'transparent',
+        tooltip: {
+          trigger: 'axis',
+          textStyle: {
+            fontSize: 12,
+            color: '#fff'
+          },
+          formatter: function (params) {
+            let result = params[0].name + '<br>';
+            for (let i = 0; i < params.length; i++) {
+              result += params[i].seriesName + ': ' + params[i].value + '<br>';
+            }
+            return result;
+          }
+        }
+      };
+      this.equipmentBarChart.setOption(option);
+    },
+    // 初始化 24h 购电成本折线图
+    initCostLineChart() {
+      const option = {
+        title: {
+          text: '24h 购电成本',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#fff',
+            fontWeight: 'bold'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        series: [
+          {
+            data: [30, 50, 40, 60, 50, 70, 80],
+            type: 'line',
+            smooth: true,
+            lineStyle: { color: '#ff6666', width: 2 },
+            itemStyle: { color: '#ff6666', borderWidth: 2, borderColor: '#fff' },
+            symbol: 'circle',
+            symbolSize: 8,
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(255, 102, 102, 0.3)' },
+                { offset: 1, color: 'rgba(255, 102, 102, 0)' }
+              ])
+            }
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+        backgroundColor: 'transparent'
+      };
+      this.costLineChart.setOption(option);
+    },
+    // 初始化 24h 蓄冰量折线图
+    initIceLineChart() {
+      const option = {
+        title: {
+          text: '24h 蓄冰量',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#fff',
+            fontWeight: 'bold'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#fff', fontSize: 12 }
+        },
+        series: [
+          {
+            data: [100, 150, 120, 130, 140, 160, 180],
+            type: 'line',
+            smooth: true,
+            lineStyle: { color: '#0091ea', width: 2 },
+            itemStyle: { color: '#0091ea', borderWidth: 2, borderColor: '#fff' },
+            symbol: 'circle',
+            symbolSize: 8,
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(0, 145, 234, 0.3)' },
+                { offset: 1, color: 'rgba(0, 145, 234, 0)' }
+              ])
+            }
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+        backgroundColor: 'transparent'
+      };
+      this.iceLineChart.setOption(option);
+    }
+  }
 };
 </script>
 
 <style scoped lang="scss">
-.data-overview-view {
-  padding: 20px;
-  background-color: #1a1a2e; // 深色背景
-  min-height: 100vh;
-  color: #fff;
+* {
+  box-sizing: border-box;
+}
 
-  .charts-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr); // 2 列
-    gap: 20px; // 图表之间的间距
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #1a1a2e;
+  color: #fff;
+  padding: 20px;
+  margin: 0;
+}
+
+.upper-section {
+  display: flex;
+  height: 45%;
+
+  .left-section {
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+
+    .data-display {
+      display: flex;
+      justify-content: space-around; // 使数据项均匀分布
+      align-items: center; // 垂直居中对齐
+      padding: 0; // 去除多余内边距
+      height: auto; // 根据内容自动调整高度
+    }
+
+    .data-item {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      // 增大宽度以占据更多空间
+      width: 30%;
+      // 可适当调整高度
+      height: auto;
+    }
+
+    .data-label {
+      font-size: 14px;
+      color: #00b4ff;
+    }
+
+    .data-value {
+      font-size: 18px;
+      font-weight: bold;
+      // 可以根据需要添加一些上下间距
+      margin-top: 5px;
+    }
+
+
+
+    .unit-pie-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      /* 让机组总数和饼图均匀分布 */
+      height: auto;
+      /* 根据内容自动调整高度 */
+      gap: 20px;
+
+      .unit-count {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px 20px;
+        border-radius: 20px;
+        text-align: center;
+        // 添加以下样式
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: auto;
+
+        /* 根据内容自动调整高度 */
+        .data-label {
+          font-size: 14px;
+          color: #00b4ff;
+        }
+
+        .data-value {
+          font-size: 18px;
+          font-weight: bold;
+        }
+      }
+
+      .pie-chart {
+        width: 50%;
+        /* 增大饼图尺寸 */
+        height: 200px;
+      }
+    }
   }
 
-  .chart-group {
-    background: linear-gradient(145deg, #16213e, #1a1a2e); // 渐变背景
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-
-    .group-title {
-      font-size: 18px;
-      margin-bottom: 16px;
-      color: #00b4ff; // 霓虹蓝色
-      text-align: center;
-    }
-
-    .group-content {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr); // 每组内 2 列
-      gap: 16px;
-    }
+  .right-section {
+    width: 60%;
 
     .chart {
-      height: 250px; // 固定高度
-      background-color: rgba(255, 255, 255, 0.05); // 半透明背景
-      border-radius: 8px;
-      padding: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      height: 100%;
     }
+  }
+}
+
+.lower-section {
+  display: grid;
+  grid-template-columns: repeat(2, 49%);
+  grid-template-rows: repeat(2, 49%);
+  gap: 20px;
+  height: 55%;
+
+  .chart {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 5px;
   }
 }
 </style>
