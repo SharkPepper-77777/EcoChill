@@ -369,66 +369,56 @@ body {
 /* 储能装置参数设置框 */
 .storage-settings {
   margin-bottom: 30px;
-  padding: 5%;
-  /* 将 20px 改为 5%，根据父元素宽度调整内边距 */
+  padding: 20px;
   background-color: #f8f9fa;
-  border-radius: 8px;
+  border-radius: 5px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   text-align: center;
-  /* 使内部文字水平居中 */
+  width: 97%;
+  height: 70px; /* 固定高度 */
 }
 
 .storage-header {
   display: flex;
   align-items: center;
-  gap: 5%;
-  /* 将 20px 改为 5%，根据父元素宽度调整间距 */
+  gap: 20px;
   justify-content: center;
-  /* 让标题和参数行在水平方向均匀分布 */
   flex-wrap: wrap;
-  /* 允许换行 */
 }
 
 .storage-settings h3 {
   margin: 0;
-  font-size: 4vw;
-  /* 将 18px 改为 4vw，根据视口宽度调整字体大小 */
+  font-size: 18px;
   font-weight: 500;
   color: #333;
 }
 
 .storage-settings .param-row {
   display: flex;
-  gap: 5%;
-  /* 将 20px 改为 5%，根据父元素宽度调整间距 */
+  gap: 20px;
   align-items: center;
   justify-content: center;
-  /* 让每个参数项在水平方向均匀分布 */
 }
 
 .storage-settings .param-item {
   flex: 1;
-  margin: 0 2%;
-  /* 添加左右边距，使用百分比让布局更灵活 */
+  margin: 0 10px;
 }
 
 .storage-settings label {
   display: block;
-  margin-bottom: 2%;
-  /* 将 5px 改为 2%，根据父元素高度调整下边距 */
-  font-size: 3vw;
-  /* 将 14px 改为 3vw，根据视口宽度调整字体大小 */
+  margin-bottom: 5px;
+  font-size: 14px;
   color: #555;
 }
 
 .storage-settings input {
   width: 100%;
-  padding: 2%;
-  /* 将 8px 改为 2%，根据父元素宽度调整内边距 */
+  padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 3vw;
-  /* 将 14px 改为 3vw，根据视口宽度调整字体大小 */
+  font-size: 14px;
+  height: 40px; /* 固定高度 */
 }
 
 /* 顶部栏 */
@@ -436,49 +426,37 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 使内部子元素在水平方向居中 */
-  margin-bottom: 5%;
-  /* 将 30px 改为 5%，根据父元素高度调整下边距 */
-  padding: 3%;
-  /* 将 15px 改为 3%，根据父元素宽度调整内边距 */
+  margin-bottom: 20px;
+  padding: 15px;
   background-color: #f8f9fa;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  /* 使内部文字水平居中 */
+  width: 97.5%;
+  height: 50px; /* 固定高度 */
 }
 
 .top-bar .label {
-  margin-right: 5%;
-  /* 将 20px 改为 5%，根据父元素宽度调整右边距 */
-  font-size: 4vw;
-  /* 将 18px 改为 4vw，根据视口宽度调整字体大小 */
+  margin-right: 20px;
+  font-size: 16px;
   font-weight: 500;
   color: #333;
-  text-align: center;
-  /* 使内部文字水平居中 */
 }
 
 .top-bar select {
-  padding: 2%;
-  /* 将 8px 12px 改为 2%，根据父元素宽度调整内边距 */
-  margin-right: 5%;
-  /* 将 20px 改为 5%，根据父元素宽度调整右边距 */
+  padding: 8px 12px;
+  margin-right: 20px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 3.5vw;
-  /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
+  font-size: 16px;
 }
 
 .top-bar button {
-  padding: 2%;
-  /* 将 8px 20px 改为 2%，根据父元素宽度调整内边距 */
+  padding: 8px 20px;
   background-color: #42b983;
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 3.5vw;
-  /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
+  font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
@@ -502,119 +480,91 @@ body {
 
 .modal-content {
   background-color: white;
-  padding: 5%;
-  /* 将 20px 改为 5%，根据父元素宽度调整内边距 */
+  padding: 20px;
   border-radius: 8px;
-  width: 80%;
-  /* 将 600px 改为 80%，根据视口宽度调整宽度 */
-  max-height: 80vh;
+  width: 50%;
+  height: 400px; /* 固定高度 */
   overflow-y: auto;
 }
 
 .close {
   float: right;
   cursor: pointer;
-  font-size: 5vw;
-  /* 将 24px 改为 5vw，根据视口宽度调整字体大小 */
+  font-size: 24px;
   color: #666;
 }
 
 .section {
-  margin-bottom: 5%;
-  /* 将 20px 改为 5%，根据父元素高度调整下边距 */
+  margin-bottom: 20px;
 }
 
 .param-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 2%;
-  /* 将 10px 改为 2%，根据父元素宽度调整间距 */
-  margin-bottom: 2%;
-  /* 将 10px 改为 2%，根据父元素高度调整下边距 */
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 .param-item {
-  flex: 1 1 calc(33.33% - 2%);
-  /* 将 10px 改为 2%，根据父元素宽度调整间距 */
-  margin: 0 1%;
-  /* 添加左右边距，使用百分比让布局更灵活 */
+  flex: 1 1 calc(33.33% - 10px);
+  margin: 0 5px;
 }
 
 .param-item label {
   display: block;
-  margin-bottom: 2%;
-  /* 将 5px 改为 2%，根据父元素高度调整下边距 */
-  font-size: 3vw;
-  /* 将 14px 改为 3vw，根据视口宽度调整字体大小 */
-  color: #555;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #555;                             
 }
 
 .param-item input {
-  width: 100%;
-  padding: 2%;
-  /* 将 8px 改为 2%，根据父元素宽度调整内边距 */
+  width: 80%;
+  padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 3vw;
-  /* 将 14px 改为 3vw，根据视口宽度调整字体大小 */
+  font-size: 14px;
+  height: 30px; /* 固定高度 */
 }
 
 /* 机组卡片展示 */
 .unit-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 5%;
-  /* 将 20px 改为 5%，根据父元素宽度调整间距 */
-  padding: 2%;
-  /* 将 10px 改为 2%，根据父元素宽度调整内边距 */
+  gap: 20px;
+  padding: 20px;
+  width: 96.5%;
   height: auto;
-  /* 去除固定高度，让内容自动撑开 */
-  overflow-y: auto;
-  /* 允许垂直滚动 */
 }
 
 .unit-card {
-  flex: 1 1 calc(33.33% - 5%);
-  /* 将 20px 改为 5%，根据父元素宽度调整间距 */
+  flex: 1 1 calc(33.33% - 20px); 
   border: 1px solid #ddd;
-  padding: 3%;
-  /* 将 15px 改为 3%，根据父元素宽度调整内边距 */
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  border-radius: 8px;        
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);                
   background-color: #F4F7FB;
+  height: 150px; /* 固定高度 */
 }
 
 .unit-card.placeholder {
   visibility: hidden;
-  /* 占位符不可见 */
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2%;
-  /* 将 10px 改为 2%，根据父元素高度调整下边距 */
+  margin-bottom: 10px;
 }
 
 .unit-id {
-  font-size: 4vw;
-  /* 将 20px 改为 4vw，根据视口宽度调整字体大小 */
+  font-size: 16px;
   font-weight: 500;
   color: #42b983;
 }
 
-.unit-name {
-  font-size: 3.5vw;
-  /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
-  font-weight: 500;
-  color: #333;
-}
-
 .unit-type {
-  /* 新增的样式类，用于设置展示机组类型的样式 */
-  font-size: 3.5vw;
-  /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
+  font-size: 30px;
   font-weight: 500;
   color: #333;
 }
@@ -623,11 +573,12 @@ body {
   display: flex;
   align-items: center;
   background-color: #f0f0f0;
-  padding: 1%;
-  /* 将 4px 8px 改为 1%，根据父元素宽度调整内边距 */
+  padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
+  width: 15%;
+  height: 40px; /* 固定高度 */
 }
 
 .mode-toggle:hover {
@@ -636,14 +587,11 @@ body {
 
 .toggle-icon {
   display: inline-block;
-  width: 3vw;
-  /* 将 12px 改为 3vw，根据视口宽度调整宽度 */
-  height: 3vw;
-  /* 将 12px 改为 3vw，根据视口宽度调整高度 */
+  width: 20px; /* 固定宽度 */
+  height: 20px; /* 固定高度 */
   border-radius: 50%;
   background-color: #ccc;
-  margin-left: 2%;
-  /* 将 8px 改为 2%，根据父元素宽度调整左边距 */
+  margin-left: 8px;
   transition: background-color 0.3s;
 }
 
@@ -656,23 +604,19 @@ body {
 }
 
 .card-body {
-  margin-bottom: 2%;
-  /* 将 10px 改为 2%，根据父元素高度调整下边距 */
+  margin-bottom: 10px;
 }
 
 .unit-type {
-  font-size: 3vw;
-  /* 将 14px 改为 3vw，根据视口宽度调整字体大小 */
+  font-size: 14px;
   color: #666;
-  margin-bottom: 2%;
-  /* 将 10px 改为 2%，根据父元素高度调整下边距 */
+  margin-bottom: 10px;
 }
 
 .params-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 2%;
-  /* 将 8px 改为 2%，根据父元素宽度调整间距 */
+  gap: 8px;
 }
 
 .param-row {
@@ -682,60 +626,39 @@ body {
 }
 
 .param-name {
-  font-size: 3vw;
-  /* 将 14px 改为 3vw，根据视口宽度调整字体大小 */
+  font-size: 14px;
   color: #555;
 }
 
 .param-value {
-  font-size: 3vw;
-  /* 将 14px 改为 3vw，根据视口宽度调整字体大小 */
+  font-size: 14px;
   color: #333;
   font-weight: 500;
 }
 
 .card-footer {
-  margin-top: 2%;
-  /* 将 10px 改为 2%，根据父元素高度调整上边距 */
+  margin-top: 10px;
 }
+
 .range-inputs {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.edit-modal-content {
-  background-color: white;
-  padding: 5%;
-  /* 将 20px 改为 5%，根据父元素宽度调整内边距 */
-  border-radius: 8px;
-  width: 80%;
-  /* 将 600px 改为 80%，根据视口宽度调整宽度 */
-  max-height: 80vh;
-  overflow-y: auto;
-}
-
-.edit-close {
-  float: right;
-  cursor: pointer;
-  font-size: 5vw;
-  /* 将 24px 改为 5vw，根据视口宽度调整字体大小 */
-  color: #666;
-}
-
 /* 保存和删除按钮样式 */
 .save-button {
-  padding: 2%;
+  padding: 10px 20px;
   /* 将 10px 20px 改为 2%，根据父元素宽度调整内边距 */
   background-color: #42b983;
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 3.5vw;
+  font-size: 16px;
   /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
   cursor: pointer;
   transition: background-color 0.3s;
-  margin-right: 2%;
+  margin-right: 10px;
   /* 将 10px 改为 2%，根据父元素宽度调整右边距 */
 }
 
@@ -778,17 +701,17 @@ body {
 
 /* 开始调度预测按钮样式 */
 .start-scheduling-button {
-  padding: 2%;
+  padding: 10px 20px;
   /* 将 10px 20px 改为 2%，根据父元素宽度调整内边距 */
   color: white;
   border: none;
-  border-radius: 4px;
-  font-size: 3.5vw;
+  border-radius: 5px;
+  font-size: 2vw;
   /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
   cursor: pointer;
   transition: background-color 0.3s;
   display: inline-block;
-  width: 30%;
+  width: 18%;
   /* 调整宽度为 30%，根据需要修改 */
   background-image: url('../assets/button-bg.png');
   background-size: 100% 100%;

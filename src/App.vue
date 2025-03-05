@@ -32,7 +32,7 @@ html, body {
   margin: 0; /* 移除默认的外边距 */
   padding: 0; /* 移除默认的填充 */
   height: 100%; /* 确保 body 填满整个视口高度 */
-  background-color: #0a192f; /* 深蓝色背景 */
+  background-color: #ECF5FC; /* 深蓝色背景 */
   color: #ccd6f6; /* 浅蓝色文字 */
   font-family: 'Poppins', sans-serif; /* 使用 Google Fonts 字体 */
 }

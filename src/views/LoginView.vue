@@ -98,7 +98,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-image: url('@/assets/background.png'); /* 背景图路径 */
+  background-image: url('@/assets/background.jpg'); /* 背景图路径 */
   background-size: cover;
   background-position: center;
 }

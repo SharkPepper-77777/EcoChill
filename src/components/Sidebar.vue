@@ -74,7 +74,7 @@ export default {
 <style scoped lang="scss">
 .sidebar {
   width: 250px;
-  background: linear-gradient(135deg, #274a76, #2d5e9e); /* 渐变色背景 */
+  background: linear-gradient(135deg, #6999C7, #84ABD1); /* 渐变色背景 */
   color: white;
   box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2); /* 右侧阴影 */
   display: flex;
@@ -130,7 +130,7 @@ export default {
   top: 0;
   height: 100%;
   width: 4px;
-  background-color: #3b82f6; /* 左侧高亮条 */
+  background-color: #CCE1F2; /* 左侧高亮条 */
 }
 
 .sidebar-menu li i {

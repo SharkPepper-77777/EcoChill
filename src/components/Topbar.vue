@@ -62,7 +62,7 @@ export default {
 .topbar {
   width: 100%;
   height: 60px;
-  background-color: #d6deeb;
+  background-color: #b8d0e7;
   display: flex;
   justify-content: space-between;
   align-items: center;

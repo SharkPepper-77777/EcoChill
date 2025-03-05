@@ -98,14 +98,14 @@ export default {
 .workspace {
   flex: 1;
   padding: 20px;
-  background-color: #132843;
+  background-color: #ecf5fc;
   border-radius: 8px;
   // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: 20px;
   margin-top: 20px;
   /* 移除顶部外边距 */
   overflow-y: scroll;
-  background-image: url('@/assets/workspace-bg.jpg'); // 添加背景图片
+  //background-image: url('@/assets/workspace-bg.jpg'); // 添加背景图片
   background-size: cover; // 使背景图片覆盖整个容器
   background-position: center; // 背景图片居中
   background-repeat: no-repeat; // 不重复背景图片

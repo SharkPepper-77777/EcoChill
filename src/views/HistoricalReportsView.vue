@@ -155,10 +155,10 @@ export default {
 .search-input {
   flex: 1;
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(18, 82, 134, 0.2);
   border-radius: 6px;
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  background-color: rgba(18, 82, 134, 0.3); /* 深色背景 */
+  color: white; /* 浅色字体 */
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   outline: none;
@@ -166,18 +166,18 @@ export default {
 }
 
 .search-input::placeholder {
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.6); /* 浅色占位符 */
 }
 
 .search-input:focus {
-  border-color: #4273c2;
+  border-color: #4273c2; /* 聚焦时边框颜色 */
 }
 
 .search-button {
   margin-left: 10px;
   padding: 10px 20px;
-  background-color: #4273c2;
-  color: white;
+  background-color: #7a61d4; /* 按钮背景色 */
+  color: white; /* 按钮字体颜色 */
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -187,13 +187,13 @@ export default {
 }
 
 .search-button:hover {
-  background-color: #3763c2;
+  background-color: #462ba8; /* 按钮悬停背景色 */
 }
 
 .batch-export-button {
   padding: 10px 20px;
-  background-color: #10b981;
-  color: white;
+  background-color: #1096be; /* 按钮背景色 */
+  color: white; /* 按钮字体颜色 */
   border: none;
   border-radius: 6px;
   cursor: pointer;
@@ -203,13 +203,13 @@ export default {
 }
 
 .batch-export-button:hover {
-  background-color: #059669;
+  background-color: #056896; /* 按钮悬停背景色 */
 }
 
 .reports-table {
   width: 100%;
   border-collapse: collapse;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(96, 146, 212, 0.3); /* 表背景 */
   border-radius: 8px;
   overflow: hidden;
 }
@@ -217,13 +217,13 @@ export default {
 .reports-table th,
 .reports-table td {
   padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center; /* 文本居中 */
+  border-bottom: 1px solid rgba(40, 67, 128, 0.158); /* 边框 */
 }
 
 .reports-table th {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
+  background-color: rgba(18, 82, 134, 0.219); /* 表头背景 */
+  color: white; /* 浅色字体 */
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
 }
@@ -231,15 +231,15 @@ export default {
 .reports-table td {
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
-  color: white;
+  color: rgb(58, 74, 126); /* 表字体 */
 }
 
 .reports-table tr.selected {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(72, 131, 179, 0.473); /* 选中行背景色 */
 }
 
 .reports-table tr:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.288); /* 悬停行背景色 */
   cursor: pointer;
 }
 
@@ -254,21 +254,21 @@ export default {
 }
 
 .view-button {
-  background-color: #4d7fcf;
-  color: white;
+  background-color: #4a68cae3; /* 按钮背景色 */
+  color: white; /* 按钮字体颜色 */
   margin-right: 10px;
 }
 
 .view-button:hover {
-  background-color: #3f6ccd;
+  background-color: #20428b; /* 按钮悬停背景色 */
 }
 
 .export-button {
-  background-color: #10b981;
-  color: white;
+  background-color: #1096be; /* 按钮背景色 */
+  color: white; /* 按钮字体颜色 */
 }
 
 .export-button:hover {
-  background-color: #059669;
+  background-color: #056896; /* 按钮悬停背景色 */
 }
 </style>
