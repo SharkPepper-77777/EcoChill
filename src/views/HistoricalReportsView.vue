@@ -12,6 +12,7 @@
         <button @click="handleSearch" class="search-button">搜索</button>
       </div>
       <button @click="handleBatchExport" class="batch-export-button">批量导出</button>
+      <button @click="handleBatchDelete" class="batch-delete-button">批量删除</button>
     </div>
     <!-- 表格 -->
     <table class="reports-table">
@@ -47,6 +48,7 @@
           <td>
             <button @click="handleView(report)" class="action-button view-button">查看</button>
             <button @click="handleExport(report)" class="action-button export-button">导出</button>
+            <button @click="handleDelete(report)" class="action-button delete-button">删除</button>
           </td>
         </tr>
       </tbody>
@@ -111,6 +113,26 @@ export default {
         alert(`批量导出报表：${this.selectedReports.join(', ')}`);
       }
     },
+    // 处理删除单个报表
+    handleDelete(report) {
+      if (confirm(`确定要删除报表 ${report.id} 吗？`)) {
+        this.reports = this.reports.filter((r) => r.id !== report.id);
+        this.selectedReports = this.selectedReports.filter((id) => id !== report.id);
+        console.log('删除报表:', report.id);
+      }
+    },
+    // 处理批量删除
+    handleBatchDelete() {
+      if (this.selectedReports.length === 0) {
+        alert('请先选择报表！');
+      } else {
+        if (confirm(`确定要删除选中的 ${this.selectedReports.length} 个报表吗？`)) {
+          this.reports = this.reports.filter((report) => !this.selectedReports.includes(report.id));
+          this.selectedReports = [];
+          console.log('批量删除报表:', this.selectedReports);
+        }
+      }
+    },
     // 切换选中状态
     toggleSelect(reportId) {
       if (this.selectedReports.includes(reportId)) {
@@ -132,13 +154,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-// .historical-reports-view {
-//   padding: 20px;
-//   background-color: #1c3a62; /* 深蓝色背景 */
-//   border-radius: 12px; /* 圆角 */
-//   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* 阴影效果 */
-// }
-
 .search-and-actions {
   display: flex;
   align-items: center;
@@ -200,10 +215,27 @@ export default {
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   transition: background-color 0.3s ease;
+  margin-right: 10px;
 }
 
 .batch-export-button:hover {
   background-color: #056896; /* 按钮悬停背景色 */
+}
+
+.batch-delete-button {
+  padding: 10px 20px;
+  background-color: #ff6767; /* 删除按钮背景色 */
+  color: white; /* 按钮字体颜色 */
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.batch-delete-button:hover {
+  background-color: #a04a40; /* 删除按钮悬停背景色 */
 }
 
 .reports-table {
@@ -266,9 +298,19 @@ export default {
 .export-button {
   background-color: #1096be; /* 按钮背景色 */
   color: white; /* 按钮字体颜色 */
+  margin-right: 10px;
 }
 
 .export-button:hover {
   background-color: #056896; /* 按钮悬停背景色 */
+}
+
+.delete-button {
+  background-color: #ff6767; /* 删除按钮背景色 */
+  color: white; /* 按钮字体颜色 */
+}
+
+.delete-button:hover {
+  background-color: #97463d; /* 删除按钮悬停背景色 */
 }
 </style>

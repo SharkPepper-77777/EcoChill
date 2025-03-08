@@ -24,9 +24,9 @@
   <div class="top-bar">
     <span class="label">添加机组</span>
     <select v-model="selectedUnitType">
-      <option value="螺杆">螺杆机组</option>
-      <option value="基载">基载机组</option>
-      <option value="双工况">双工况机组</option>
+      <option value="螺杆">螺杆式制冷机组</option>
+      <option value="基载">基载离心式制冷机组</option>
+      <option value="双工况">双工况离心式制冷机组</option>
     </select>
     <button @click="showModal = true">添加</button>
   </div>
@@ -695,7 +695,12 @@ body {
 /* 保存和删除按钮样式 */
 .save-button {
   padding: 10px 20px;
+<<<<<<< Updated upstream
   background-color: #42b983;
+=======
+  /* 将 10px 20px 改为 2%，根据父元素宽度调整内边距 */
+  background-color: #42b1b9;
+>>>>>>> Stashed changes
   color: white;
   border: none;
   border-radius: 4px;
@@ -706,7 +711,7 @@ body {
 }
 
 .save-button:hover {
-  background-color: #3aa876;
+  background-color: #42b1b9;
 }
 
 .delete-button {

@@ -224,7 +224,7 @@ initCoolingLineChart() {
         z: 10 // 确保折线图在柱状图上方
       }
     ],
-    grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+    grid: { left: '10%', right: '10%', bottom: '13%',top: '23%', containLabel: true },
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
@@ -284,7 +284,7 @@ initPurchaseLineChart() {
         }
       }
     ],
-    grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+    grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
     backgroundColor: 'transparent'
   };
   this.purchaseLineChart.setOption(option);
@@ -357,7 +357,7 @@ initEquipmentBarChart() {
         data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
       }
     ],
-    grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+    grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
@@ -417,7 +417,7 @@ initCostLineChart() {
         }
       }
     ],
-    grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+    grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
     backgroundColor: 'transparent'
   };
   this.costLineChart.setOption(option);
@@ -463,7 +463,7 @@ initIceLineChart() {
         }
       }
     ],
-    grid: { left: '10%', right: '10%', bottom: '15%', containLabel: true },
+    grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
     backgroundColor: 'transparent'
   };
   this.iceLineChart.setOption(option);
@@ -657,7 +657,7 @@ body {
   .chart {
     background: linear-gradient(135deg, #ffffff, #f0f0f0); // 白色渐变背景
     border-radius: 20px; // 圆角改为 20px
-    padding: 5px;
+    padding: 5px 5px 5px 5px; // 减少 padding-top 以减少标题与图之间的距离
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); // 添加阴影，悬浮效果
     transition: box-shadow 0.3s ease; // 添加过渡效果
 
