@@ -701,12 +701,12 @@ body {
 
 /* 开始调度预测按钮样式 */
 .start-scheduling-button {
-  padding: 10px 20px;
+  padding: 1.2% 1.2%;
   /* 将 10px 20px 改为 2%，根据父元素宽度调整内边距 */
   color: white;
   border: none;
   border-radius: 5px;
-  font-size: 2vw;
+  font-size: 1.5em;
   /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
   cursor: pointer;
   transition: background-color 0.3s;
