@@ -1,101 +1,65 @@
 <template>
-  <div>
-    <!-- 机组列表界面 -->
-    <div v-if="!showUnitDetail" class="unit-list-page">
-      <div class="unit-card-list">
-        <div v-for="unit in filteredUnits" :key="unit.id" class="unit-card" @click="showUnitDetailPage(unit.id)">
-          <h3 class="card-title">#{{ unit.id }}</h3>
-          <p class="card-type">类型: {{ unit.type }}</p>
-          <!-- 显示部分通用参数示例 -->
-          <p v-if="unit.unitParams" class="card-param">额定制冷量: {{ unit.unitParams.param1 }}</p>
-          <p v-if="unit.coolingModeParams" class="card-param">制冷模式额定制冷量: {{ unit.coolingModeParams.param1 }}</p>
-        </div>
-      </div>
+  <!-- 机组列表界面 -->
+  <div v-if="!showUnitDetail">
+    <div v-for="unit in filteredUnits" :key="unit.id" class="custom-unit-card" @click="showUnitDetailPage(unit.id)">
+      <h3 class="card-title">#{{ unit.id }}</h3>
+      <p class="card-type">类型: {{ unit.type }}</p>
+      <!-- 显示部分通用参数示例 -->
+      <p v-if="unit.unitParams" class="card-param">额定制冷量: {{ unit.unitParams.param1 }}</p>
+      <p v-if="unit.coolingModeParams" class="card-param">制冷模式额定制冷量: {{ unit.coolingModeParams.param1 }}</p>
     </div>
+  </div>
 
-    <!-- 机组详情界面 -->
-    <div v-if="showUnitDetail" class="unit-detail-page">
-      <div class="detail-header">
-        <button class="back-button" @click="goBackToList">
-          <i class="arrow-left"></i>
-        </button>
-        <div class="header-middle">
-          <span class="unit-name">{{ currentUnit.type }}</span>
+  <!-- 机组详情界面 -->
+  <div v-if="showUnitDetail">
+    <div class="detail-container">
+      <!-- 左边部分 -->
+      <div class="left-section">
+        <div class="top-info">
+          <button class="back-button" @click="goBackToList">
+            <i class="arrow-left"></i>
+          </button>
+          <span class="unit-id-center">#{{ currentUnit.id }}</span>
+          <span class="unit-kind">{{ currentUnit.type }}</span>
         </div>
-        <div class="header-right">
-          <span class="unit-number">#{{ currentUnit.id }}</span>
+        <div class="unit-image">
+          <img :src="currentUnit.imageUrl || ''" alt="机组图片">
+        </div>
+        <div class="param-table">
+          <table>
+            <tbody>
+              <tr v-for="(param, index) in unitParams" :key="index">
+                <td class="param-label">{{ param.label }}:</td>
+                <td class="param-value">{{ currentUnit.unitParams[index] }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="total-cooling-capacity">
+          <span class="capacity-label">24h总制冷量:</span>
+          <div class="cooling-values-box">
+            <span v-for="(value, index) in get24hCoolingCapacity" :key="index">
+              <span class="cooling-value-box">{{ value }}</span>
+            </span>
+          </div>
         </div>
       </div>
 
-      <div class="detail-content">
-        <div class="params-section">
-          <!-- 显示所有机组参数 -->
-          <div v-if="currentUnit.type === '螺杆' || currentUnit.type === '基载'">
-            <h3 class="section-title">机组参数</h3>
-            <div class="param-grid">
-              <!-- 遍历螺杆和基载机组的参数 -->
-              <div v-for="(param, index) in unitParams" :key="index" class="param-row">
-                <span class="param-name">{{ param.label }}:</span>
-                <span class="param-value">{{ currentUnit.unitParams[index] }}</span>
-              </div>
-            </div>
+      <!-- 右边部分 -->
+      <div class="right-section">
+        <div class="charts-top">
+          <div class="daily-cooling-chart">
+            <h3 class="section-title">24h制冷量</h3>
+            <div id="daily-cooling-chart-container" class="chart-container"></div>
           </div>
-          <div v-if="currentUnit.type === '双工况'">
-            <div class="mode-params">
-              <h3 class="section-title">制冷模式参数</h3>
-              <div class="param-grid">
-                <!-- 遍历双工况机组制冷模式的参数 -->
-                <div v-for="(param, index) in coolingModeParams" :key="index" class="param-row">
-                  <span class="param-name">{{ param.label }}:</span>
-                  <span class="param-value">{{ currentUnit.coolingModeParams[index] }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="mode-params">
-              <h3 class="section-title">制冰模式参数</h3>
-              <div class="param-grid">
-                <!-- 遍历双工况机组制冰模式的参数 -->
-                <div v-for="(param, index) in iceModeParams" :key="index" class="param-row">
-                  <span class="param-name">{{ param.label }}:</span>
-                  <span class="param-value">{{ currentUnit.iceModeParams[index] }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="storage-params">
-            <h3 class="section-title">储能装置参数</h3>
-            <div class="param-grid">
-              <div class="param-item">
-                <span class="param-label">最大蓄冰量</span>
-                <span class="param-value">{{ currentUnit.storageParams.maxIceStorage }}</span>
-              </div>
-              <div class="param-item">
-                <span class="param-label">冷量损失系数</span>
-                <span class="param-value">{{ currentUnit.storageParams.coolingLossCoefficient }}</span>
-              </div>
-            </div>
+          <div class="daily-power-chart">
+            <h3 class="section-title">24h用电量</h3>
+            <div id="daily-power-chart-container" class="chart-container"></div>
           </div>
         </div>
-
-        <div class="charts-section">
-          <!-- 模拟一整天的开关情况、用电量和制冷量 -->
-          <div class="daily-data">
-            <h3 class="section-title">一整天运行数据</h3>
-            <div id="echarts-container" class="chart-container"></div>
-          </div>
-          <div class="switch-chart">
-            <h3 class="section-title">24小时开关状态</h3>
-            <div id="switch-chart-container" class="chart-container"></div>
-          </div>
-          <!-- 这里可以添加更多图表，比如饼图 -->
-          <div class="pie-chart">
-            <h3 class="section-title">示例饼图1</h3>
-            <div id="pie-chart-container-1" class="chart-container"></div>
-          </div>
-          <div class="pie-chart">
-            <h3 class="section-title">示例饼图2</h3>
-            <div id="pie-chart-container-2" class="chart-container"></div>
-          </div>
+        <div class="switch-chart-bottom">
+          <h3 class="section-title">24h开关情况</h3>
+          <div id="switch-chart-bottom-container" class="chart-container"></div>
         </div>
       </div>
     </div>
@@ -115,33 +79,22 @@ export default {
     // 新增计算属性用于过滤（这里目前没有实际过滤逻辑，可根据需求添加）
     filteredUnits() {
       return this.units.filter(unit => unit); // 简单过滤掉可能的空值，可按需修改
-    }
+    },
+    get24hCoolingCapacity() {
+      if (this.currentUnit) {
+        const totalCoolingCapacity = this.getTotal24hCoolingCapacity();
+        return totalCoolingCapacity.toString().split('');
+      }
+      return [];
+    },
+
   },
   data() {
     return {
       showUnitDetail: false,
       currentUnit: null,
-      dailySwitchData: [],
       // 螺杆和基载机组参数
       unitParams: [
-        { label: '额定制冷量', type: 'number', value: 0 },
-        { label: '输入功率', type: 'number', value: 0 },
-        { label: 'PLR范围', type: 'range', value: [0, 1] },
-        { label: '泵体数量', type: 'number', value: 0 },
-        { label: '泵体耗电量', type: 'number', value: 0 },
-        { label: '最大可输送冷量', type: 'number', value: 0 },
-      ],
-      // 双工况机组制冷模式参数
-      coolingModeParams: [
-        { label: '额定制冷量', type: 'number', value: 0 },
-        { label: '输入功率', type: 'number', value: 0 },
-        { label: 'PLR范围', type: 'range', value: [0, 1] },
-        { label: '泵体数量', type: 'number', value: 0 },
-        { label: '泵体耗电量', type: 'number', value: 0 },
-        { label: '最大可输送冷量', type: 'number', value: 0 },
-      ],
-      // 双工况机组制冰模式参数
-      iceModeParams: [
         { label: '额定制冷量', type: 'number', value: 0 },
         { label: '输入功率', type: 'number', value: 0 },
         { label: 'PLR范围', type: 'range', value: [0, 1] },
@@ -156,14 +109,19 @@ export default {
       this.currentUnit = this.units.find(unit => unit.id === unitId);
       if (this.currentUnit) {
         this.showUnitDetail = true;
-        this.generateDailySwitchData();
         this.$nextTick(() => {
-          this.renderChart();
-          this.renderSwitchChart();
-          this.renderPieChart(1);
-          this.renderPieChart(2);
+          this.renderDailyCoolingChart();
+          this.renderDailyPowerChart();
+          this.renderSwitchChartBottom();
         });
       }
+    },
+    getTotal24hCoolingCapacity() {
+      if (this.currentUnit) {
+        const dailyData = this.getDailyData(this.currentUnit.id);
+        return dailyData.reduce((acc, item) => acc + item.coolingCapacity, 0);
+      }
+      return 0;
     },
     getDailyData(unitId) {
       // 模拟不同机组的一天运行数据
@@ -223,21 +181,17 @@ export default {
       };
       return unitDailyDataMap[unitId] || []; // 如果没有对应unitId的数据，返回空数组
     },
-    renderChart() {
+    renderDailyCoolingChart() {
       if (this.currentUnit) {
         const dailyData = this.getDailyData(this.currentUnit.id);
         const times = dailyData.map(item => item.time);
-        const powerConsumptions = dailyData.map(item => item.powerConsumption);
         const coolingCapacities = dailyData.map(item => item.coolingCapacity);
 
-        const chartDom = document.getElementById('echarts-container');
+        const chartDom = document.getElementById('daily-cooling-chart-container');
         const myChart = echarts.init(chartDom);
         const option = {
           tooltip: {
             trigger: 'axis'
-          },
-          legend: {
-            data: ['用电量', '制冷量']
           },
           xAxis: {
             type: 'category',
@@ -248,12 +202,7 @@ export default {
           },
           series: [
             {
-              name: '用电量',
-              type: 'line',
-              data: powerConsumptions
-            },
-            {
-              name: '制冷量',
+              name: '24h制冷量',
               type: 'line',
               data: coolingCapacities
             }
@@ -263,31 +212,44 @@ export default {
         myChart.setOption(option);
       }
     },
-    goBackToList() {
-      this.showUnitDetail = false;
-      this.currentUnit = null;
-      // 销毁图表实例，以便下次重新渲染
-      const chartDom1 = document.getElementById('echarts-container');
-      const chartDom2 = document.getElementById('switch-chart-container');
-      const chartDom3 = document.getElementById('pie-chart-container-1');
-      const chartDom4 = document.getElementById('pie-chart-container-2');
-      if (chartDom1) echarts.dispose(chartDom1);
-      if (chartDom2) echarts.dispose(chartDom2);
-      if (chartDom3) echarts.dispose(chartDom3);
-      if (chartDom4) echarts.dispose(chartDom4);
-    },
-    generateDailySwitchData() {
+    renderDailyPowerChart() {
       if (this.currentUnit) {
         const dailyData = this.getDailyData(this.currentUnit.id);
-        this.dailySwitchData = dailyData.map(item => item.status === '开启' ? 1 : 0);
+        const times = dailyData.map(item => item.time);
+        const powerConsumptions = dailyData.map(item => item.powerConsumption);
+
+        const chartDom = document.getElementById('daily-power-chart-container');
+        const myChart = echarts.init(chartDom);
+        const option = {
+          tooltip: {
+            trigger: 'axis'
+          },
+          xAxis: {
+            type: 'category',
+            data: times
+          },
+          yAxis: {
+            type: 'value'
+          },
+          series: [
+            {
+              name: '24h用电量',
+              type: 'line',
+              data: powerConsumptions
+            }
+          ]
+        };
+
+        myChart.setOption(option);
       }
     },
-    renderSwitchChart() {
+    renderSwitchChartBottom() {
       if (this.currentUnit) {
+        const dailyData = this.getDailyData(this.currentUnit.id);
         const hours = Array.from({ length: 24 }, (_, i) => i);
-        const switchData = this.dailySwitchData;
+        const switchStatus = dailyData.map(item => item.status === '开启' ? 1 : 0);
 
-        const chartDom = document.getElementById('switch-chart-container');
+        const chartDom = document.getElementById('switch-chart-bottom-container');
         const myChart = echarts.init(chartDom);
         const option = {
           tooltip: {
@@ -305,9 +267,9 @@ export default {
           },
           series: [
             {
-              name: '开关状态',
+              name: '24h开关情况',
               type: 'bar',
-              data: switchData,
+              data: switchStatus,
               itemStyle: {
                 color: function (params) {
                   return params.value === 1 ? '#5cb85c' : '#d9534f';
@@ -320,66 +282,61 @@ export default {
         myChart.setOption(option);
       }
     },
-    renderPieChart(index) {
-      if (this.currentUnit) {
-        const chartDom = document.getElementById(`pie-chart-container-${index}`);
-        const myChart = echarts.init(chartDom);
-        const option = {
-          tooltip: {
-            trigger: 'item'
-          },
-          series: [
-            {
-              name: '示例数据',
-              type: 'pie',
-              radius: '50%',
-              data: [
-                { value: 335, name: '直接访问' },
-                { value: 310, name: '邮件营销' },
-                { value: 234, name: '联盟广告' },
-                { value: 135, name: '视频广告' },
-                { value: 1548, name: '搜索引擎' }
-              ]
-            }
-          ]
-        };
-
-        myChart.setOption(option);
-      }
+    goBackToList() {
+      this.showUnitDetail = false;
+      this.currentUnit = null;
+      // 销毁图表实例，以便下次重新渲染
+      const chartDom1 = document.getElementById('daily-cooling-chart-container');
+      const chartDom2 = document.getElementById('daily-power-chart-container');
+      const chartDom3 = document.getElementById('switch-chart-bottom-container');
+      if (chartDom1) echarts.dispose(chartDom1);
+      if (chartDom2) echarts.dispose(chartDom2);
+      if (chartDom3) echarts.dispose(chartDom3);
     }
   }
 };
 </script>
 
 <style scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f4f4f9;
   color: #333;
+  overflow: hidden;
+  /* 隐藏body的滚动条 */
 }
 
-.unit-list-page {
-  padding: 20px;
+/* 卡片父元素，设置左对齐 */
+div[v-if="!showUnitDetail"] {
+  text-align: left;
 }
 
-.unit-card-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.unit-card {
+.custom-unit-card {
+  float: left;
+  clear: none;
+  /* 允许卡片在左侧相邻位置排列，不强制换行 */
   background-color: #fff;
   border: none;
   border-radius: 10px;
   padding: 20px;
-  width: 21%;
+  width: calc(25% - 20px);
+  /* 增加左右间隙，使卡片间有横向空隙，可调整20px的值改变间隙大小 */
+  margin: 0 10px 15px 0;
+  /* 上下左右都设置间隙，使卡片间有纵向和横向空隙，可调整值改变间隙大小 */
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.3s ease;
+  display: inline-block;
+  vertical-align: top;
 }
 
-.unit-card:hover {
+.custom-unit-card:hover {
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
@@ -396,18 +353,45 @@ body {
   margin-bottom: 5px;
 }
 
-.unit-detail-page {
-  padding: 20px;
+/* 修改 detail-container 样式，确保其占满父元素且处理好内部布局 */
+.detail-container {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  /* gap: 20px; */
+  flex-wrap: wrap;
+  /* 允许子元素换行，防止溢出 */
+  align-items: stretch;
+  /* 让子元素拉伸占满高度 */
 }
 
-.detail-header {
+.left-section {
+  flex: 1;
+  background-color: #fff;
+  padding: 20px;
+  border-right: none;
+  /* 去除左边部分的右边框，消除分割线效果 */
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+  /* 设置左边部分的圆角 */
+}
+
+.right-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border-top-right-radius: 10px;
+  border-bottom-right-radius: 10px;
+  /* 设置右边部分的圆角 */
+}
+
+.top-info {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 15px 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 10px;
+  justify-content: space-between;
 }
 
 .back-button {
@@ -416,85 +400,121 @@ body {
   cursor: pointer;
   font-size: 24px;
   color: #2c3e50;
-  margin-right: 20px;
 }
 
 .arrow-left::before {
   content: '←';
 }
 
-.header-middle {
-  flex: 1;
-  text-align: center;
-}
-
-.unit-name {
+.unit-id-center {
   color: #2c3e50;
-  font-size: 24px;
-  font-weight: bold;
+  font-size: 20px;
+  text-align: center;
+  flex: 1;
 }
 
-.header-right {
-  text-align: right;
-}
-
-.unit-number {
-  color: #7f8c8d;
+.unit-kind {
+  color: #2c3e50;
   font-size: 20px;
 }
 
-.detail-content {
-  display: flex;
-  gap: 20px;
+.unit-image {
+  width: 100%;
+  height: 150px;
+  /* 适当降低图片高度，避免内容过多导致溢出 */
+  overflow: hidden;
+  margin-bottom: 10px;
 }
 
-.params-section {
-  flex: 1;
-  background-color: #fff;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+.unit-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
-.param-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+.param-table {
+  width: 100%;
+  margin-bottom: 10px;
 }
 
-.param-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.param-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.param-table td {
+  padding: 5px 0;
   border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 5px;
 }
 
 .param-label {
   font-weight: bold;
   color: #2c3e50;
+  width: 50%;
 }
 
 .param-value {
   color: #7f8c8d;
 }
 
-.charts-section {
+.total-cooling-capacity {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-top: 10px;
+  overflow: hidden;
+  /* 防止总制冷量部分内容溢出 */
+}
+
+.capacity-label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.cooling-values-box {
+  display: inline-block;
+}
+
+.cooling-value-box {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 5px 8px;
+  margin-right: 5px;
+  display: inline-block;
+}
+
+.right-section {
   flex: 1;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  overflow: hidden;
+  /* 防止右边部分内容溢出 */
+}
+
+.charts-top {
+  flex: 1;
+  display: flex;
   gap: 10px;
 }
 
-.daily-data,
-.switch-chart,
-.pie-chart {
+.daily-cooling-chart,
+.daily-power-chart {
+  flex: 1;
   background-color: #fff;
-  border-radius: 10px;
   padding: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  width: calc((100% - 30px) / 4);
-  /* 一排显示四个图表 */
+  overflow: hidden;
+  /* 防止图表部分内容溢出 */
+}
+
+.switch-chart-bottom {
+  background-color: #fff;
+  padding: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  /* 防止图表部分内容溢出 */
 }
 
 .section-title {
@@ -506,6 +526,7 @@ body {
 .chart-container {
   width: 100%;
   height: 150px;
-  /* 减小图表高度 */
+  overflow: hidden;
+  /* 防止图表容器内容溢出 */
 }
 </style>

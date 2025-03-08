@@ -31,6 +31,138 @@
     <button @click="showModal = true">添加</button>
   </div>
 
+  <!-- 机组卡片展示区域 -->
+  <div class="unit-list-container" style="overflow-y: auto;">
+    <div class="unit-list">
+      <div v-for="unit in units" :key="unit.id" class="unit-card" @click="showEditModal(unit)">
+        <!-- 顶部：编号和名称 -->
+        <div class="card-header">
+          <span class="unit-id">#{{ unit.id }}</span>
+          <div v-if="unit.type === '双工况'" class="mode-toggle" @click.stop="toggleMode(unit)">
+            <span>{{ unit.currentMode === 'cooling' ? '制冷模式' : '制冰模式' }}</span>
+
+          </div>
+          <span class="unit-type">{{ unit.type }}</span>
+        </div>
+
+        <!-- 底部：机组参数 -->
+        <div class="card-footer">
+          <div v-if="unit.type === '螺杆' || unit.type === '基载'">
+            <div class="params-grid">
+              <div v-for="(param, index) in unitParams" :key="index" class="param-row">
+                <span class="param-name">{{ param.label }}:</span>
+                <span class="param-value">
+                  <template v-if="param.type === 'range'">
+                    {{ unit.unitParams[index].min }} - {{ unit.unitParams[index].max }}
+                  </template>
+                  <template v-else>
+                    {{ unit.unitParams[index] }}
+                  </template>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div v-if="unit.type === '双工况'">
+            <div v-if="unit.currentMode === 'cooling'">
+              <div class="params-grid cooling-mode-params">
+                <div v-for="(param, index) in coolingModeParams" :key="index" class="param-row">
+                  <span class="param-name">{{ param.label }}:</span>
+                  <span class="param-value">
+                    <template v-if="param.type === 'range'">
+                      {{ unit.coolingModeParams[index].min }} - {{ unit.coolingModeParams[index].max }}
+                    </template>
+                    <template v-else>
+                      {{ unit.coolingModeParams[index] }}
+                    </template>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div v-if="unit.currentMode === 'ice'">
+              <div class="params-grid ice-mode-params">
+                <div v-for="(param, index) in iceModeParams" :key="index" class="param-row">
+                  <span class="param-name">{{ param.label }}:</span>
+                  <span class="param-value">
+                    <template v-if="param.type === 'range'">
+                      {{ unit.iceModeParams[index].min }} - {{ unit.iceModeParams[index].max }}
+                    </template>
+                    <template v-else>
+                      {{ unit.iceModeParams[index] }}
+                    </template>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 占位符填充 -->
+    <div v-for="i in placeholderCount" :key="`placeholder-${i}`" class="unit-card placeholder"></div>
+  </div>
+  <!-- 开始调度预测按钮 -->
+  <button class="start-scheduling-button" @click="startSchedulingPrediction">开始调度预测</button>
+  <!-- 编辑弹窗 -->
+  <div v-if="showEditModalId" class="edit-modal">
+    <div class="edit-modal-content">
+      <div class="edit-modal-header">
+        <span class="edit-unit-id">#{{ showEditModalId }}</span>
+        <span class="edit-unit-type">{{ editUnitType }}</span>
+        <span class="edit-close" @click="showEditModalId = null">&times;</span>
+      </div>
+      <div class="section">
+        <!-- 根据机组类型动态显示参数 -->
+        <div v-if="editUnitType === '螺杆' || editUnitType === '基载'">
+          <div class="param-row">
+            <div v-for="(param, index) in unitParams" :key="index" class="param-item">
+              <label>{{ param.label }}:</label>
+              <template v-if="param.type === 'range'">
+                <div class="range-inputs">
+                  <input type="number" v-model="editUnitParams[index].min" placeholder="最小值" />
+                  <span class="range-separator">-</span>
+                  <input type="number" v-model="editUnitParams[index].max" placeholder="最大值" />
+                </div>
+              </template>
+              <input v-else :type="param.type" v-model="editUnitParams[index]" />
+            </div>
+          </div>
+        </div>
+        <div v-if="editUnitType === '双工况'">
+          <h4>制冷模式参数</h4>
+          <div class="param-row">
+            <div v-for="(param, index) in coolingModeParams" :key="index" class="param-item">
+              <label>{{ param.label }}:</label>
+              <template v-if="param.type === 'range'">
+                <div class="range-inputs">
+                  <input type="number" v-model="editUnitParams.coolingMode[index].min" placeholder="最小值" />
+                  <span class="range-separator">-</span>
+                  <input type="number" v-model="editUnitParams.coolingMode[index].max" placeholder="最大值" />
+                </div>
+              </template>
+              <input v-else :type="param.type" v-model="editUnitParams.coolingMode[index]" />
+            </div>
+          </div>
+          <h4>制冰模式参数</h4>
+          <div class="param-row">
+            <div v-for="(param, index) in iceModeParams" :key="index" class="param-item">
+              <label>{{ param.label }}:</label>
+              <template v-if="param.type === 'range'">
+                <div class="range-inputs">
+                  <input type="number" v-model="editUnitParams.iceMode[index].min" placeholder="最小值" />
+                  <span class="range-separator">-</span>
+                  <input type="number" v-model="editUnitParams.iceMode[index].max" placeholder="最大值" />
+                </div>
+              </template>
+              <input v-else :type="param.type" v-model="editUnitParams.iceMode[index]" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <button class="save-button" @click="saveEditedUnit">保存</button>
+      <button class="delete-button" @click="deleteUnit">删除</button>
+    </div>
+  </div>
+
   <!-- 弹窗 -->
   <div v-if="showModal" class="modal">
     <div class="modal-content">
@@ -91,135 +223,6 @@
       <button class="save-button" @click="saveUnit">保存</button>
     </div>
   </div>
-
-  <!-- 机组卡片展示 -->
-  <div class="unit-list">
-    <div v-for="unit in units" :key="unit.id" class="unit-card" @click="showEditModal(unit.id)">
-      <!-- 顶部：编号和名称 -->
-      <div class="card-header">
-        <span class="unit-id">#{{ unit.id }}</span>
-        <span class="unit-type">{{ unit.type }}</span> <!-- 这里修改为展示机组的type -->
-        <div v-if="unit.type === '双工况'" class="mode-toggle" @click.stop="toggleMode(unit)">
-          <span>{{ unit.currentMode === 'cooling' ? '制冷模式' : '制冰模式' }}</span>
-          <i class="toggle-icon"></i>
-        </div>
-      </div>
-
-      <!-- 底部：机组参数 -->
-      <div class="card-footer">
-        <div v-if="unit.type === '螺杆' || unit.type === '基载'">
-          <div class="params-grid">
-            <div v-for="(param, index) in unitParams" :key="index" class="param-row">
-              <span class="param-name">{{ param.label }}:</span>
-              <span class="param-value">
-                <template v-if="param.type === 'range'">
-                  {{ unit.unitParams[index].min }} - {{ unit.unitParams[index].max }}
-                </template>
-                <template v-else>
-                  {{ unit.unitParams[index] }}
-                </template>
-              </span>
-            </div>
-          </div>
-        </div>
-        <div v-if="unit.type === '双工况'">
-          <div v-if="unit.currentMode === 'cooling'">
-            <div class="params-grid cooling-mode-params">
-              <div v-for="(param, index) in coolingModeParams" :key="index" class="param-row">
-                <span class="param-name">{{ param.label }}:</span>
-                <span class="param-value">
-                  <template v-if="param.type === 'range'">
-                    {{ unit.coolingModeParams[index].min }} - {{ unit.coolingModeParams[index].max }}
-                  </template>
-                  <template v-else>
-                    {{ unit.coolingModeParams[index] }}
-                  </template>
-                </span>
-              </div>
-            </div>
-          </div>
-          <div v-if="unit.currentMode === 'ice'">
-            <div class="params-grid ice-mode-params">
-              <div v-for="(param, index) in iceModeParams" :key="index" class="param-row">
-                <span class="param-name">{{ param.label }}:</span>
-                <span class="param-value">
-                  <template v-if="param.type === 'range'">
-                    {{ unit.iceModeParams[index].min }} - {{ unit.iceModeParams[index].max }}
-                  </template>
-                  <template v-else>
-                    {{ unit.iceModeParams[index] }}
-                  </template>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 占位符填充 -->
-    <div v-for="i in placeholderCount" :key="`placeholder-${i}`" class="unit-card placeholder"></div>
-  </div>
-  <!-- 开始调度预测按钮 -->
-  <button class="start-scheduling-button" @click="startSchedulingPrediction">开始调度预测</button>
-  <!-- 编辑弹窗 -->
-  <div v-if="showEditModalId" class="edit-modal">
-    <div class="edit-modal-content">
-      <span class="edit-close" @click="showEditModalId = null">&times;</span>
-      <h2>编辑机组参数</h2>
-      <div class="section">
-        <h3>机组参数</h3>
-        <!-- 根据机组类型动态显示参数 -->
-        <div v-if="editUnitType === '螺杆' || editUnitType === '基载'">
-          <div class="param-row">
-            <div v-for="(param, index) in unitParams" :key="index" class="param-item">
-              <label>{{ param.label }}:</label>
-              <template v-if="param.type === 'range'">
-                <div class="range-inputs">
-                  <input type="number" v-model="editUnitParams[index].min" placeholder="最小值" />
-                  <span class="range-separator">-</span>
-                  <input type="number" v-model="editUnitParams[index].max" placeholder="最大值" />
-                </div>
-              </template>
-              <input v-else :type="param.type" v-model="editUnitParams[index]" />
-            </div>
-          </div>
-        </div>
-        <div v-if="editUnitType === '双工况'">
-          <h4>制冷模式参数</h4>
-          <div class="param-row">
-            <div v-for="(param, index) in coolingModeParams" :key="index" class="param-item">
-              <label>{{ param.label }}:</label>
-              <template v-if="param.type === 'range'">
-                <div class="range-inputs">
-                  <input type="number" v-model="editUnitParams.coolingMode[index].min" placeholder="最小值" />
-                  <span class="range-separator">-</span>
-                  <input type="number" v-model="editUnitParams.coolingMode[index].max" placeholder="最大值" />
-                </div>
-              </template>
-              <input v-else :type="param.type" v-model="editUnitParams.coolingMode[index]" />
-            </div>
-          </div>
-          <h4>制冰模式参数</h4>
-          <div class="param-row">
-            <div v-for="(param, index) in iceModeParams" :key="index" class="param-item">
-              <label>{{ param.label }}:</label>
-              <template v-if="param.type === 'range'">
-                <div class="range-inputs">
-                  <input type="number" v-model="editUnitParams.iceMode[index].min" placeholder="最小值" />
-                  <span class="range-separator">-</span>
-                  <input type="number" v-model="editUnitParams.iceMode[index].max" placeholder="最大值" />
-                </div>
-              </template>
-              <input v-else :type="param.type" v-model="editUnitParams.iceMode[index]" />
-            </div>
-          </div>
-        </div>
-      </div>
-      <button class="save-button" @click="saveEditedUnit">保存</button>
-      <button class="delete-button" @click="deleteUnit">删除</button>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -276,7 +279,17 @@ export default {
   computed: {
     ...mapGetters(['getUnits']),
     units() {
-      return this.getUnits;
+      // 检查units数据是否正确，确保每个unit对象都有id属性
+      const unitsFromStore = this.getUnits;
+      if (Array.isArray(unitsFromStore)) {
+        return unitsFromStore.map(unit => {
+          if (!unit.id) {
+            unit.id = this.nextUnitId++; // 如果没有id，生成一个
+          }
+          return unit;
+        });
+      }
+      return [];
     },
     // 计算占位符数量
     placeholderCount() {
@@ -308,18 +321,19 @@ export default {
     },
     // 显示编辑弹窗
     showEditModal(unit) {
-      this.showEditModalId = unit.id;
-      this.editUnitType = unit.type;
+      console.log("showEditModal被调用, unit.id:", unit.id); // 添加日志输出，检查方法是否被调用以及unit.id是否正确
+      this.showEditModalId = unit.id; // 设置要编辑的机组id，用于显示编辑弹窗
+      this.editUnitType = unit.type; // 设置当前编辑机组的类型
       // 初始化编辑参数
       if (unit.type === '螺杆' || unit.type === '基载') {
-        this.editUnitParams = [...unit.unitParams];
+        this.editUnitParams = [...unit.unitParams]; // 展开并复制机组参数
       } else if (unit.type === '双工况') {
         this.editUnitParams = {
-          coolingMode: [...unit.coolingModeParams],
-          iceMode: [...unit.iceModeParams],
+          coolingMode: [...unit.coolingModeParams], // 展开并复制制冷模式参数
+          iceMode: [...unit.iceModeParams] // 展开并复制制冰模式参数
         };
       }
-      this.editStorageParams = { ...unit.storageParams };
+      this.editStorageParams = { ...unit.storageParams }; // 展开并复制储能装置参数
     },
     // 保存编辑后的机组
     saveEditedUnit() {
@@ -375,7 +389,8 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   text-align: center;
   width: 97%;
-  height: 70px; /* 固定高度 */
+  height: 70px;
+  /* 固定高度 */
 }
 
 .storage-header {
@@ -418,7 +433,8 @@ body {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
-  height: 40px; /* 固定高度 */
+  height: 40px;
+  /* 固定高度 */
 }
 
 /* 顶部栏 */
@@ -432,7 +448,8 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   width: 97.5%;
-  height: 50px; /* 固定高度 */
+  height: 50px;
+  /* 固定高度 */
 }
 
 .top-bar .label {
@@ -483,8 +500,11 @@ body {
   padding: 20px;
   border-radius: 8px;
   width: 50%;
-  height: 400px; /* 固定高度 */
+  max-height: 80%;
+  /* 限制最大高度，防止弹窗过高超出屏幕 */
   overflow-y: auto;
+  box-sizing: border-box;
+  /* 让 padding 不影响宽度计算 */
 }
 
 .close {
@@ -514,7 +534,7 @@ body {
   display: block;
   margin-bottom: 5px;
   font-size: 14px;
-  color: #555;                             
+  color: #555;
 }
 
 .param-item input {
@@ -523,31 +543,58 @@ body {
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
-  height: 30px; /* 固定高度 */
+  height: 30px;
+  /* 固定高度 */
 }
 
-/* 机组卡片展示 */
+/* 机组卡片展示区域容器样式 */
+.unit-list-container {
+  background-color: white;
+  width: 98%;
+  /* 可按需调整宽度百分比 */
+  margin: 0 auto;
+  padding: 1%;
+  min-height: calc(2.5 * (150px + 20px));
+  /* 使用 min-height，确保一开始占满两排卡片高度的区域，min-height: 340px; */
+  max-height: calc(2.5 * (150px + 20px));
+  /* 假设卡片高度 150px，间距 20px，两排高度，超出时滚动 */
+}
+
+/* 机组列表样式调整 */
 .unit-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  /* 每行三个卡片 */
   gap: 20px;
-  padding: 20px;
-  width: 96.5%;
-  height: auto;
 }
 
 .unit-card {
-  flex: 1 1 calc(33.33% - 20px); 
+  flex: 1;
   border: 1px solid #ddd;
   padding: 15px;
-  border-radius: 8px;        
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);                
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   background-color: #F4F7FB;
-  height: 150px; /* 固定高度 */
+  height: 150px;
+  overflow: hidden;
+  /* 隐藏超出部分 */
+  display: -webkit-box;
+  /* 结合 -webkit-line-clamp 使用，用于实现限制行数 */
+  -webkit-line-clamp: 4;
+  /* 限制显示 4 行，可根据实际需求调整 */
+  -webkit-box-orient: vertical;
+  /* 设置为垂直方向 */
+  text-overflow: ellipsis;
+  /* 超出部分显示省略号 */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .unit-card.placeholder {
   visibility: hidden;
+}
+
+.unit-card:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 .card-header {
@@ -564,21 +611,24 @@ body {
 }
 
 .unit-type {
-  font-size: 30px;
-  font-weight: 500;
-  color: #333;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
 }
 
 .mode-toggle {
   display: flex;
   align-items: center;
-  background-color: #f0f0f0;
+  justify-content: center;
+  /* 水平居中 */
+  background-color: #4743ae;
   padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s;
-  width: 15%;
-  height: 40px; /* 固定高度 */
+  width: 40%;
+  height: 40px;
+  /* 固定高度 */
 }
 
 .mode-toggle:hover {
@@ -587,8 +637,10 @@ body {
 
 .toggle-icon {
   display: inline-block;
-  width: 20px; /* 固定宽度 */
-  height: 20px; /* 固定高度 */
+  width: 20px;
+  /* 固定宽度 */
+  height: 20px;
+  /* 固定高度 */
   border-radius: 50%;
   background-color: #ccc;
   margin-left: 8px;
@@ -604,12 +656,6 @@ body {
 }
 
 .card-body {
-  margin-bottom: 10px;
-}
-
-.unit-type {
-  font-size: 14px;
-  color: #666;
   margin-bottom: 10px;
 }
 
@@ -649,17 +695,14 @@ body {
 /* 保存和删除按钮样式 */
 .save-button {
   padding: 10px 20px;
-  /* 将 10px 20px 改为 2%，根据父元素宽度调整内边距 */
   background-color: #42b983;
   color: white;
   border: none;
   border-radius: 4px;
   font-size: 16px;
-  /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
   cursor: pointer;
   transition: background-color 0.3s;
   margin-right: 10px;
-  /* 将 10px 改为 2%，根据父元素宽度调整右边距 */
 }
 
 .save-button:hover {
@@ -667,14 +710,12 @@ body {
 }
 
 .delete-button {
-  padding: 2%;
-  /* 将 10px 20px 改为 2%，根据父元素宽度调整内边距 */
+  padding: 10px 20px;
   background-color: #e74c3c;
   color: white;
   border: none;
   border-radius: 4px;
-  font-size: 3.5vw;
-  /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
+  font-size: 16px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
@@ -686,8 +727,7 @@ body {
 .range-inputs {
   display: flex;
   align-items: center;
-  gap: 2%;
-  /* 将 8px 改为 2%，根据父元素宽度调整间距 */
+  gap: 8px;
 }
 
 .range-inputs input {
@@ -702,17 +742,18 @@ body {
 /* 开始调度预测按钮样式 */
 .start-scheduling-button {
   padding: 1.2% 1.2%;
-  /* 将 10px 20px 改为 2%，根据父元素宽度调整内边距 */
   color: white;
   border: none;
   border-radius: 5px;
   font-size: 1.5em;
-  /* 将 16px 改为 3.5vw，根据视口宽度调整字体大小 */
   cursor: pointer;
   transition: background-color 0.3s;
-  display: inline-block;
+  display: block;
+  /* 改为块级元素，便于居中 */
   width: 18%;
-  /* 调整宽度为 30%，根据需要修改 */
+  /* 调整宽度，根据需要修改 */
+  margin: 20px auto;
+  /* 上下边距 20px，水平居中 */
   background-image: url('../assets/button-bg.png');
   background-size: 100% 100%;
   background-repeat: no-repeat;
@@ -721,5 +762,57 @@ body {
 
 .start-scheduling-button:hover {
   background-color: #2980b9;
+}
+
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  /* 增加 z-index，确保弹窗在最上层显示 */
+}
+
+.edit-modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  width: 500px;
+  max-height: 90%;
+  /* 限制最大高度，防止超出屏幕 */
+  overflow-y: auto;
+  /* 出现内容过多时显示滚动条 */
+  box-sizing: border-box;
+  /* 让 padding 不影响宽度计算 */
+}
+
+.edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.edit-unit-id {
+  font-size: 16px;
+  font-weight: 500;
+  color: #42b983;
+}
+
+.edit-unit-type {
+  font-size: 14px;
+  color: #666;
+}
+
+.edit-close {
+  cursor: pointer;
+  font-size: 24px;
+  color: #666;
 }
 </style>

@@ -23,7 +23,6 @@ export default createStore({
     },
     addUnit(state, unit) {
       state.units.push(unit);
-      state.nextUnitId++;
     }
   },
   actions: {
@@ -56,6 +55,7 @@ export default createStore({
         id: state.nextUnitId
       };
       commit('addUnit', unit);
+      state.nextUnitId++;
     }
   },
   modules: {

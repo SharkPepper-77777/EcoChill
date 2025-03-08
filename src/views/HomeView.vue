@@ -105,7 +105,7 @@ export default {
   margin-top: 20px;
   /* 移除顶部外边距 */
   overflow-y: scroll;
-  background-image: url('@/assets/workspace-bg.jpg'); // 添加背景图片
+  //background-image: url('@/assets/workspace-bg.jpg'); // 添加背景图片
   background-size: cover; // 使背景图片覆盖整个容器
   background-position: center; // 背景图片居中
   background-repeat: no-repeat; // 不重复背景图片
