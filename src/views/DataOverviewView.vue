@@ -512,18 +512,18 @@ body {
       padding: 0; // 去除内边距
 
       .data-item {
-        padding: 15px;
-        border-radius: 20px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        width: 30%; // 每个框的宽度
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        transition: box-shadow 0.3s ease;
+  padding: 2%;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 30%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.3s ease;
 
-        &:hover {
-          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-        }
+  &:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  }
 
         &:nth-child(1) {
           background: linear-gradient(135deg, #ffa2a2, #ff9696);
@@ -547,15 +547,15 @@ body {
         }
 
         .data-label {
-          font-size: 14px;
-          font-weight: bold;
-        }
+    font-size: 0.9em; // 使用百分比设置字体大小
+    font-weight: bold;
+  }
 
-        .data-value {
-          font-size: 38px;
-          font-weight: bold;
-          margin-top: 5px;
-        }
+  .data-value {
+    font-size: 2em; // 使用百分比设置字体大小
+    font-weight: bold;
+    margin-top: 2px;
+  }
       }
     }
 
@@ -563,7 +563,7 @@ body {
       display: flex;
       align-items: center;
       gap: 20px;
-      height: 200px;
+      height: 50%;
 
       .left-container {
         display: flex;
@@ -592,13 +592,13 @@ body {
           }
 
           .data-label {
-            font-size: 16px;
+            font-size: 0.7em;
             color: #0061bd;
             font-weight: bold;
           }
 
           .data-value {
-            font-size: 20px;
+            font-size: 1em;
             font-weight: bold;
             color: #0061bd;
           }
