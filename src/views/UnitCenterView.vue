@@ -1,7 +1,10 @@
 <template>
   <!-- 机组列表界面 -->
   <div v-if="!showUnitDetail">
-    <div v-for="unit in allUnits" :key="unit.id" class="custom-unit-card" @click="showUnitDetailPage(unit.id)">
+    <div v-for="unit in allUnits" :key="unit.id" 
+    class="custom-unit-card" 
+    :class="getCardClass(unit.type)" 
+    @click="showUnitDetailPage(unit.id)">
       <h3 class="card-title">#{{ unit.id }}</h3>
       <p class="card-type">类型: {{ unit.type }}</p>
       <!-- 显示部分通用参数示例，增加数据存在性判断 -->
@@ -34,40 +37,20 @@
           <span class="unit-kind">{{ currentUnit.type }}</span>
         </div>
         <div class="unit-image">
-  <img :src="getUnitImage(currentUnit.type)" alt="机组图片">
+  <img :src="currentUnit.imageUrl || ''" alt="机组图片">
+  <!-- 当图片不存在时显示提示 -->
+  <p v-if="!currentUnit.imageUrl" class="no-image-message">暂无机组图片</p>
 </div>
-<div class="param-table">
-  <!-- 螺杆或基载机组 -->
-  <template v-if="currentUnit.type === '螺杆' || currentUnit.type === '基载'">
-    <div class="param-row">
-      <div v-for="(param, index) in unitParams" :key="index" class="param-container">
-        <div class="param-value">{{ currentUnit.unitParams[param.label] }}</div>
-        <div class="param-label">{{ param.label }}</div>
-      </div>
-    </div>
-  </template>
-
-  <!-- 双工况机组 -->
-  <template v-else-if="currentUnit.type === '双工况'">
-    <!-- 制冷模式参数 -->
-    <div class="mode-title">制冷模式参数</div>
-    <div class="param-row">
-      <div v-for="(param, index) in coolingModeParams" :key="'cooling-' + index" class="param-container">
-        <div class="param-value">{{ currentUnit.coolingModeParams[param.label] }}</div>
-        <div class="param-label">{{ param.label }}</div>
-      </div>
-    </div>
-
-    <!-- 制冰模式参数 -->
-    <div class="mode-title">制冰模式参数</div>
-    <div class="param-row">
-      <div v-for="(param, index) in iceModeParams" :key="'ice-' + index" class="param-container">
-        <div class="param-value">{{ currentUnit.iceModeParams[param.label] }}</div>
-        <div class="param-label">{{ param.label }}</div>
-      </div>
-    </div>
-  </template>
-</div>
+        <div class="param-table">
+          <div class="param-row">
+            <div v-for="(paramObj, index) in currentUnitParams" :key="index" class="param-container">
+              <span class="param-value">{{ paramObj.value }}</span>
+              <span class="param-label">{{ paramObj.label }}:</span>
+            </div>
+          </div>
+          <!-- 当参数表格为空时显示提示 -->
+          <p v-if="!(currentUnitParams && currentUnitParams.length > 0)" class="no-params-message">暂无更多参数信息</p>
+        </div>
         <div class="total-cooling-capacity">
           <span class="capacity-label">24h总制冷量:</span>
           <div class="cooling-values-box">
@@ -129,7 +112,7 @@ export default {
       const result = labels.map((label, index) => {
         let value = '无数据';
         const paramValue = params[index];
-        if (paramValue !== undefined) {
+        if (paramValue!== undefined) {
           if (typeof paramValue === 'object') {
             value = `min: ${paramValue.min}, max: ${paramValue.max}`;
           } else {
@@ -179,67 +162,70 @@ export default {
     }
   },
   data() {
-  return {
-    showUnitDetail: false,
-    currentUnit: null,
-    // 螺杆和基载机组参数
-    unitParams: [
-      { label: '额定制冷量', type: 'number' },
-      { label: '输入功率', type: 'number' },
-      { label: 'PLR范围', type: 'range' },
-      { label: '泵体数量', type: 'number' },
-      { label: '泵体耗电量', type: 'number' },
-      { label: '最大可输送冷量', type: 'number' },
-    ],
-    // 双工况机组制冷模式参数
-    coolingModeParams: [
-      { label: '额定制冷量', type: 'number' },
-      { label: '输入功率', type: 'number' },
-      { label: 'PLR范围', type: 'range' },
-      { label: '泵体数量', type: 'number' },
-      { label: '泵体耗电量', type: 'number' },
-      { label: '最大可输送冷量', type: 'number' },
-    ],
-    // 双工况机组制冰模式参数
-    iceModeParams: [
-      { label: '额定制冷量', type: 'number' },
-      { label: '输入功率', type: 'number' },
-      { label: 'PLR范围', type: 'range' },
-      { label: '泵体数量', type: 'number' },
-      { label: '泵体耗电量', type: 'number' },
-      { label: '最大可输送冷量', type: 'number' },
-    ],
-  };
-},
+    return {
+      showUnitDetail: false,
+      unitParams: [
+        { label: '额定制冷量', type: 'number', value: 0 },
+        { label: '输入功率', type: 'number', value: 0 },
+        { label: 'PLR 范围', type: 'range', value: [0, 1] },
+        { label: '泵体数量', type: 'number', value: 0 },
+        { label: '泵体耗电量', type: 'number', value: 0 },
+        { label: '最大可输送冷量', type: 'number', value: 0 },
+      ],
+      chartInstances: {
+        dailyCoolingChart: null,
+        dailyPowerChart: null,
+        switchChartBottom: null
+      },
+      isLoading: false,
+      errorMessage: '' // 新增，用于存储错误信息
+    };
+  },
   methods: {
     ...mapActions(['fetchScheduledUnits', 'getUnitById']),
-    async showUnitDetailPage(unitId) {
-      this.isLoading = true;
-      this.errorMessage = '';
-      try {
-        const response = await axios.get(`http://localhost:3001/units/${unitId}`);
-        const unit = response.data;
-        console.log('后端返回的数据:', unit);
-        if (unit.message === "Unit not found") {
-          this.errorMessage = `未找到 ID 为 ${unitId} 的机组`;
-          console.error(this.errorMessage);
-        } else {
-          // 提交到Vuex的mutation中
-          this.$store.commit('setSelectedUnit', unit);
-          this.showUnitDetail = true;
-          this.$nextTick(() => {
-            this.renderDailyCoolingChart();
-            this.renderDailyPowerChart();
-            this.renderSwitchChartBottom();
-          });
-        }
-      } catch (error) {
-        this.errorMessage = '获取机组数据失败，请检查网络或稍后重试';
-        console.error(this.errorMessage, error);
-      } finally {
-        this.isLoading = false;
-      }
+    getCardClass(type) {
+      const classMap = {
+        '螺杆': 'card-screw',
+        '双工况': 'card-dual-mode',
+        '基载': 'card-base-load'
+      };
+      return classMap[type] || '';
     },
+    async showUnitDetailPage(unitId) {
+  this.isLoading = true;
+  this.errorMessage = '';
+  try {
+    const response = await axios.get(`http://localhost:3001/units/${unitId}`);
+    const unit = response.data;
+    console.log('后端返回的数据:', unit);
+    if (unit.message === "Unit not found") {
+      this.errorMessage = `未找到 ID 为 ${unitId} 的机组`;
+      console.error(this.errorMessage);
+    } else {
+      // 新增部分：根据机组类型设置图片 URL
+      const imageMap = {
+        '螺杆': require('@/assets/luoganshi.png'),
+        '双工况': require('@/assets/lixinshi.png'),
+        '基载': require('@/assets/lixinshi.png')
+      };
+      unit.imageUrl = imageMap[unit.type] || '';
+
+      // 提交到Vuex的mutation中
+      this.$store.commit('setSelectedUnit', unit);
+      this.showUnitDetail = true;
+      this.$nextTick(() => {
+        this.renderDailyCoolingChart();
+        this.renderDailyPowerChart();
+        this.renderSwitchChartBottom();
+      });
+    }
+  } catch (error) {
+    this.errorMessage = '获取机组数据失败，请检查网络或稍后重试';
+    console.error(this.errorMessage, error);
+  } finally {
+    this.isLoading = false;
+  }
+},
     getTotal24hCoolingCapacity() {
       if (this.currentUnit) {
         const dailyData = this.getDailyData();
@@ -579,9 +565,9 @@ div[v-if="!showUnitDetail"] {
 }
 
 .param-value {
-  font-size: 18px; /* 设置数值字体大小 */
+  font-size: 20px; /* 设置数值字体大小 */
   font-weight: bold; /* 设置数值字体加粗 */
-  color: #2c3e50; /* 设置数值字体颜色 */
+  color: #0e55a5; /* 设置数值字体颜色 */
   margin-bottom: 5px; /* 设置数值与名称之间的间距 */
 }
 
@@ -626,9 +612,9 @@ div[v-if="!showUnitDetail"] {
 }
 
 .cooling-value-box {
-  border: 1px solid #ccc;
+  border: 1px solid #cccccc00;
   background-image: url('~@/assets/num-bg.png'); /* 尝试添加 ~ 前缀 */
-  background-size: 1em; /* 确保背景图片覆盖容器 */
+  background-size: 0.8em; /* 确保背景图片覆盖容器 */
   background-position: center bottom; /* 让背景图片水平居中，垂直下对齐 */
   background-repeat: no-repeat; /* 防止背景图片重复 */
   border-radius: 5px;
