@@ -37,13 +37,12 @@
   <div class="unit-list-container" style="overflow-y: auto;">
     <div class="unit-list">
       <div v-for="unit in units" :key="unit.id" class="unit-card" @click="showEditModal(unit)">
-        <!-- 顶部：编号和名称 -->
-        <div class="card-header">
-          <span class="unit-id">#{{ unit.id }}</span>
-          <div v-if="unit.type === '双工况'" class="mode-toggle" @click.stop="toggleMode(unit)">
-            <span>{{ unit.currentMode === 'cooling' ? '制冷模式' : '制冰模式' }}</span>
-          </div>
-          <span class="unit-type">{{ unit.type }}</span>
+    <div class="card-header">
+      <span class="unit-id">#{{ unit.id }}</span>
+      <div v-if="unit.type === '双工况'" class="mode-toggle" @click.stop="toggleMode(unit)" :style="modeToggleStyle(unit)">
+        <span>{{ unit.currentMode === 'cooling' ? '制冷模式' : '制冰模式' }}</span>
+      </div>
+      <span class="unit-type">{{ unit.type }}</span>
         </div>
 
         <!-- 底部：机组参数 -->
@@ -383,6 +382,11 @@ export default {
     toggleMode(unit) {
       unit.currentMode = unit.currentMode === 'cooling' ? 'ice' : 'cooling';
     },
+    modeToggleStyle(unit) {
+      return {
+        backgroundColor: unit.currentMode === 'cooling' ? '#42b983' : '#3498db',
+      };
+    },
     // 开始调度预测方法，可根据实际需求实现具体逻辑
     async startSchedulingPrediction() {
       try {
@@ -494,7 +498,7 @@ body {
   margin: 0;
   font-size: 18px;
   font-weight: 500;
-  color: #333;
+  color: #333333;
 }
 
 .storage-settings .param-row {
@@ -558,7 +562,7 @@ body {
 
 .top-bar button {
   padding: 8px 20px;
-  background-color: #42b983;
+  background-color: #429db9;
   color: white;
   border: none;
   border-radius: 4px;
@@ -568,7 +572,7 @@ body {
 }
 
 .top-bar button:hover {
-  background-color: #3aa876;
+  background-color: #3a8ba8;
 }
 
 /* 弹窗 */
@@ -593,6 +597,7 @@ body {
   /* 限制最大高度，防止弹窗过高超出屏幕 */
   overflow-y: auto;
   box-sizing: border-box;
+  color: #3b81ba; /* 弹窗内容字体颜色 */
   /* 让 padding 不影响宽度计算 */
 }
 
@@ -653,6 +658,7 @@ body {
 .unit-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   /* 每行三个卡片 */
   gap: 20px;
 }
@@ -696,7 +702,7 @@ body {
 .unit-id {
   font-size: 16px;
   font-weight: 500;
-  color: #42b983;
+  color: #4293b9;
 }
 
 .unit-type {
@@ -710,7 +716,7 @@ body {
   align-items: center;
   justify-content: center;
   /* 水平居中 */
-  background-color: #4743ae;
+  background-color: #a3c2f0;
   padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
@@ -737,7 +743,7 @@ body {
 }
 
 .mode-toggle[mode="cooling"] .toggle-icon {
-  background-color: #42b983;
+  background-color: #4260b9;
 }
 
 .mode-toggle[mode="ice"] .toggle-icon {
@@ -784,7 +790,8 @@ body {
 /* 保存和删除按钮样式 */
 .save-button {
   padding: 10px 20px;
-  background-color: #42b983;
+  /* 将 10px 20px 改为 2%，根据父元素宽度调整内边距 */
+  background-color: #42b1b9;
   color: white;
   border: none;
   border-radius: 4px;
@@ -891,7 +898,7 @@ body {
 .edit-unit-id {
   font-size: 16px;
   font-weight: 500;
-  color: #42b983;
+  color: #429bb9;
 }
 
 .edit-unit-type {
@@ -903,5 +910,18 @@ body {
   cursor: pointer;
   font-size: 24px;
   color: #666;
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 40%;
+  height: 40px;
+  color: white; /* 文字颜色设置为白色，确保在不同背景色下都能清晰显示 */
 }
 </style>
