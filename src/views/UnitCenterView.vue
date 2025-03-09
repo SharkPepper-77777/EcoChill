@@ -1,20 +1,28 @@
 <template>
   <!-- 机组列表界面 -->
   <div v-if="!showUnitDetail">
-    <div v-for="unit in filteredUnits" :key="unit.id" 
-     class="custom-unit-card" 
-     :class="getCardClass(unit.type)" 
-     @click="showUnitDetailPage(unit.id)">
-  <h3 class="card-title">#{{ unit.id }}</h3>
-  <p class="card-type">类型: {{ unit.type }}</p>
-  <!-- 显示部分通用参数示例 -->
-  <p v-if="unit.unitParams" class="card-param">额定制冷量: {{ unit.unitParams.param1 }}</p>
-  <p v-if="unit.coolingModeParams" class="card-param">制冷模式额定制冷量: {{ unit.coolingModeParams.param1 }}</p>
-</div>
+    <div v-for="unit in allUnits" :key="unit.id" class="custom-unit-card" @click="showUnitDetailPage(unit.id)">
+      <h3 class="card-title">#{{ unit.id }}</h3>
+      <p class="card-type">类型: {{ unit.type }}</p>
+      <!-- 显示部分通用参数示例，增加数据存在性判断 -->
+      <p v-if="unit.unitParams && unit.unitParams.length > 0" class="card-param">
+        额定制冷量: {{unit.unitParams.find(p => p.label === '额定制冷量')?.value || '无数据'}}
+      </p>
+      <p v-if="unit.coolingModeParams && unit.coolingModeParams.length > 0" class="card-param">
+        制冷模式额定制冷量: {{unit.coolingModeParams.find(p => p.label === '额定制冷量')?.value || '无数据'}}
+      </p>
+      <!-- 增加提示，当某些关键数据不存在时 -->
+      <p v-if="!(unit.unitParams && unit.unitParams.length > 0 || unit.coolingModeParams && unit.coolingModeParams.length > 0)"
+        class="card-param">
+        暂无更多参数信息
+      </p>
+    </div>
+    <!-- 当没有机组数据时显示提示 -->
+    <p v-if="allUnits.length === 0" class="no-units-message">暂无机组数据</p>
   </div>
 
   <!-- 机组详情界面 -->
-  <div v-if="showUnitDetail">
+  <div v-if="showUnitDetail && currentUnit">
     <div class="detail-container">
       <!-- 左边部分 -->
       <div class="left-section">
@@ -67,6 +75,8 @@
               <span class="cooling-value-box">{{ value }}</span>
             </span>
           </div>
+          <!-- 当总制冷量数据为空时显示提示 -->
+          <p v-if="get24hCoolingCapacity.length === 0" class="no-cooling-capacity-message">暂无24h总制冷量数据</p>
         </div>
       </div>
 
@@ -76,34 +86,86 @@
           <div class="daily-cooling-chart">
             <h3 class="section-title">24h制冷量</h3>
             <div id="daily-cooling-chart-container" class="chart-container"></div>
+            <!-- 当图表数据不存在时显示提示，使用处理后的currentUnit24hCoolingData判断 -->
+            <p v-if="currentUnit24hCoolingData.length === 0" class="no-chart-data-message">暂无24h制冷量图表数据</p>
           </div>
           <div class="daily-power-chart">
             <h3 class="section-title">24h用电量</h3>
             <div id="daily-power-chart-container" class="chart-container"></div>
+            <!-- 当图表数据不存在时显示提示，使用处理后的currentUnit24hPowerData判断 -->
+            <p v-if="currentUnit24hPowerData.length === 0" class="no-chart-data-message">暂无24h用电量图表数据</p>
           </div>
         </div>
         <div class="switch-chart-bottom">
           <h3 class="section-title">24h开关情况</h3>
           <div id="switch-chart-bottom-container" class="chart-container"></div>
+          <!-- 当图表数据不存在时显示提示，使用处理后的currentUnit24hSwitchData判断 -->
+          <p v-if="currentUnit24hSwitchData.length === 0" class="no-chart-data-message">暂无24h开关情况图表数据</p>
         </div>
       </div>
     </div>
   </div>
+  <!-- 加载遮罩层 -->
+  <div v-if="isLoading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>数据加载中，请稍候...</p>
+  </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex';
+import { mapGetters, mapActions } from 'vuex';
 import * as echarts from 'echarts';
+import axios from 'axios';
 
 export default {
   computed: {
-    ...mapGetters(['getUnits']),
-    units() {
-      return this.getUnits;
+    ...mapGetters(['getScheduledUnits', 'getSelectedUnit']),
+    allUnits() {
+      return this.getScheduledUnits;
     },
-    // 新增计算属性用于过滤（这里目前没有实际过滤逻辑，可根据需求添加）
-    filteredUnits() {
-      return this.units.filter(unit => unit); // 简单过滤掉可能的空值，可按需修改
+    currentUnitParams() {
+      const params = this.currentUnit?.unitParams || [];
+      const labels = ['额定制冷量', '输入功率', 'PLR范围', '泵体数量', '泵体耗电量', '最大可输送冷量'];
+      const result = labels.map((label, index) => {
+        let value = '无数据';
+        const paramValue = params[index];
+        if (paramValue !== undefined) {
+          if (typeof paramValue === 'object') {
+            value = `min: ${paramValue.min}, max: ${paramValue.max}`;
+          } else {
+            value = paramValue;
+          }
+        }
+        return { label, value };
+      });
+      console.log('currentUnitParams处理后的数据:', result); // 添加这行代码
+      return result;
+    },
+    // 新增计算属性，获取当前机组24小时制冷量数据
+    currentUnit24hCoolingData() {
+      const data = this.currentUnit?.twenty_four_hours_data || [];
+      return data.map(item => ({
+        time: `${item.hour.toString().padStart(2, '0')}:00`,
+        // 确认后端数据中制冷量的属性名是否正确，这里假设是cooling_capacity
+        coolingCapacity: item.cooling_capacity
+      }));
+    },
+    // 新增计算属性，获取当前机组24小时用电量数据
+    currentUnit24hPowerData() {
+      const data = this.currentUnit?.twenty_four_hours_data || [];
+      return data.map(item => ({
+        time: `${item.hour.toString().padStart(2, '0')}:00`,
+        // 确认后端数据中用电量的属性名是否正确，这里假设是power_consumption
+        powerConsumption: item.power_consumption
+      }));
+    },
+    // 新增计算属性，获取当前机组24小时开关状态数据
+    currentUnit24hSwitchData() {
+      const data = this.currentUnit?.twenty_four_hours_data || [];
+      return data.map(item => ({
+        hour: item.hour,
+        isOn: item.is_on
+      }));
     },
     get24hCoolingCapacity() {
       if (this.currentUnit) {
@@ -112,7 +174,9 @@ export default {
       }
       return [];
     },
-
+    currentUnit() {
+      return this.getSelectedUnit;
+    }
   },
   data() {
   return {
@@ -148,210 +212,211 @@ export default {
   };
 },
   methods: {
-    showUnitDetailPage(unitId) {
-      this.currentUnit = this.units.find(unit => unit.id === unitId);
-      if (this.currentUnit) {
-        this.showUnitDetail = true;
-        this.$nextTick(() => {
-          this.renderDailyCoolingChart();
-          this.renderDailyPowerChart();
-          this.renderSwitchChartBottom();
-        });
+    ...mapActions(['fetchScheduledUnits', 'getUnitById']),
+    async showUnitDetailPage(unitId) {
+      this.isLoading = true;
+      this.errorMessage = '';
+      try {
+        const response = await axios.get(`http://localhost:3001/units/${unitId}`);
+        const unit = response.data;
+        console.log('后端返回的数据:', unit);
+        if (unit.message === "Unit not found") {
+          this.errorMessage = `未找到 ID 为 ${unitId} 的机组`;
+          console.error(this.errorMessage);
+        } else {
+          // 提交到Vuex的mutation中
+          this.$store.commit('setSelectedUnit', unit);
+          this.showUnitDetail = true;
+          this.$nextTick(() => {
+            this.renderDailyCoolingChart();
+            this.renderDailyPowerChart();
+            this.renderSwitchChartBottom();
+          });
+        }
+      } catch (error) {
+        this.errorMessage = '获取机组数据失败，请检查网络或稍后重试';
+        console.error(this.errorMessage, error);
+      } finally {
+        this.isLoading = false;
       }
     },
     getTotal24hCoolingCapacity() {
       if (this.currentUnit) {
-        const dailyData = this.getDailyData(this.currentUnit.id);
+        const dailyData = this.getDailyData();
         return dailyData.reduce((acc, item) => acc + item.coolingCapacity, 0);
       }
       return 0;
     },
-    getCardClass(type) {
-    const classMap = {
-      '螺杆': 'card-screw',
-      '双工况': 'card-dual-mode',
-      '基载': 'card-base-load',
-    };
-    return classMap[type] || ''; // 如果类型未匹配，返回空字符串
-  },
-    getUnitImage(type) {
-    const imageMap = {
-      '螺杆': require('@/assets/luoganshi.png'),
-      '双工况': require('@/assets/lixinshi.png'),
-      '基载': require('@/assets/lixinshi.png'),
-    };
-    return imageMap[type] || ''; // 如果类型未匹配，返回空字符串
-  },
-    getDailyData(unitId) {
-      // 模拟不同机组的一天运行数据
-      const unitDailyDataMap = {
-        1: [
-          { time: '00:00', status: '开启', powerConsumption: 10, coolingCapacity: 50 },
-          { time: '01:00', status: '开启', powerConsumption: 12, coolingCapacity: 55 },
-          { time: '02:00', status: '开启', powerConsumption: 13, coolingCapacity: 58 },
-          { time: '03:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 },
-          { time: '04:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 },
-          { time: '05:00', status: '开启', powerConsumption: 11, coolingCapacity: 52 },
-          { time: '06:00', status: '开启', powerConsumption: 14, coolingCapacity: 60 },
-          { time: '07:00', status: '开启', powerConsumption: 15, coolingCapacity: 62 },
-          { time: '08:00', status: '开启', powerConsumption: 16, coolingCapacity: 65 },
-          { time: '09:00', status: '开启', powerConsumption: 17, coolingCapacity: 68 },
-          { time: '10:00', status: '开启', powerConsumption: 18, coolingCapacity: 70 },
-          { time: '11:00', status: '开启', powerConsumption: 19, coolingCapacity: 72 },
-          { time: '12:00', status: '开启', powerConsumption: 20, coolingCapacity: 75 },
-          { time: '13:00', status: '开启', powerConsumption: 21, coolingCapacity: 78 },
-          { time: '14:00', status: '开启', powerConsumption: 22, coolingCapacity: 80 },
-          { time: '15:00', status: '开启', powerConsumption: 23, coolingCapacity: 82 },
-          { time: '16:00', status: '开启', powerConsumption: 24, coolingCapacity: 85 },
-          { time: '17:00', status: '开启', powerConsumption: 25, coolingCapacity: 88 },
-          { time: '18:00', status: '开启', powerConsumption: 26, coolingCapacity: 90 },
-          { time: '19:00', status: '开启', powerConsumption: 27, coolingCapacity: 92 },
-          { time: '20:00', status: '开启', powerConsumption: 28, coolingCapacity: 95 },
-          { time: '21:00', status: '开启', powerConsumption: 29, coolingCapacity: 98 },
-          { time: '22:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 },
-          { time: '23:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 }
-        ],
-        2: [
-          { time: '00:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 },
-          { time: '01:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 },
-          { time: '02:00', status: '开启', powerConsumption: 8, coolingCapacity: 40 },
-          { time: '03:00', status: '开启', powerConsumption: 9, coolingCapacity: 42 },
-          { time: '04:00', status: '开启', powerConsumption: 10, coolingCapacity: 45 },
-          { time: '05:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 },
-          { time: '06:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 },
-          { time: '07:00', status: '开启', powerConsumption: 11, coolingCapacity: 48 },
-          { time: '08:00', status: '开启', powerConsumption: 12, coolingCapacity: 50 },
-          { time: '09:00', status: '开启', powerConsumption: 13, coolingCapacity: 52 },
-          { time: '10:00', status: '开启', powerConsumption: 14, coolingCapacity: 55 },
-          { time: '11:00', status: '开启', powerConsumption: 15, coolingCapacity: 58 },
-          { time: '12:00', status: '开启', powerConsumption: 16, coolingCapacity: 60 },
-          { time: '13:00', status: '开启', powerConsumption: 17, coolingCapacity: 62 },
-          { time: '14:00', status: '开启', powerConsumption: 18, coolingCapacity: 65 },
-          { time: '15:00', status: '开启', powerConsumption: 19, coolingCapacity: 68 },
-          { time: '16:00', status: '开启', powerConsumption: 20, coolingCapacity: 70 },
-          { time: '17:00', status: '开启', powerConsumption: 21, coolingCapacity: 72 },
-          { time: '18:00', status: '开启', powerConsumption: 22, coolingCapacity: 75 },
-          { time: '19:00', status: '开启', powerConsumption: 23, coolingCapacity: 78 },
-          { time: '20:00', status: '开启', powerConsumption: 24, coolingCapacity: 80 },
-          { time: '21:00', status: '开启', powerConsumption: 25, coolingCapacity: 82 },
-          { time: '22:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 },
-          { time: '23:00', status: '关闭', powerConsumption: 0, coolingCapacity: 0 }
-        ]
-      };
-      return unitDailyDataMap[unitId] || []; // 如果没有对应unitId的数据，返回空数组
+    getDailyData() {
+      return this.currentUnit?.twenty_four_hours_data || [];
     },
     renderDailyCoolingChart() {
-      if (this.currentUnit) {
-        const dailyData = this.getDailyData(this.currentUnit.id);
-        const times = dailyData.map(item => item.time);
-        const coolingCapacities = dailyData.map(item => item.coolingCapacity);
-
-        const chartDom = document.getElementById('daily-cooling-chart-container');
-        const myChart = echarts.init(chartDom);
-        const option = {
-          tooltip: {
-            trigger: 'axis'
-          },
-          xAxis: {
-            type: 'category',
-            data: times
-          },
-          yAxis: {
-            type: 'value'
-          },
-          series: [
-            {
-              name: '24h制冷量',
-              type: 'line',
-              data: coolingCapacities
-            }
-          ]
-        };
-
-        myChart.setOption(option);
+      const dailyData = this.currentUnit24hCoolingData;
+      console.log('处理后的24h制冷量数据:', dailyData);
+      if (dailyData.length === 0) {
+        console.warn('24h制冷量数据为空，无法渲染图表');
+        return;
       }
+      const times = dailyData.map(item => item.time);
+      const coolingCapacities = dailyData.map(item => item.coolingCapacity);
+
+      const chartDom = document.getElementById('daily-cooling-chart-container');
+      const myChart = echarts.init(chartDom);
+      const option = {
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'category',
+          data: times
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            name: '24h 制冷量',
+            type: 'line',
+            data: coolingCapacities,
+            lineStyle: {
+              color: '#42b983',
+              width: 2,
+              type: 'solid'
+            },
+            itemStyle: {
+              color: '#42b983',
+              borderColor: '#fff',
+              borderWidth: 2
+            }
+          }
+        ]
+      };
+
+      myChart.setOption(option);
+      this.chartInstances.dailyCoolingChart = myChart;
     },
     renderDailyPowerChart() {
-      if (this.currentUnit) {
-        const dailyData = this.getDailyData(this.currentUnit.id);
-        const times = dailyData.map(item => item.time);
-        const powerConsumptions = dailyData.map(item => item.powerConsumption);
-
-        const chartDom = document.getElementById('daily-power-chart-container');
-        const myChart = echarts.init(chartDom);
-        const option = {
-          tooltip: {
-            trigger: 'axis'
-          },
-          xAxis: {
-            type: 'category',
-            data: times
-          },
-          yAxis: {
-            type: 'value'
-          },
-          series: [
-            {
-              name: '24h用电量',
-              type: 'line',
-              data: powerConsumptions
-            }
-          ]
-        };
-
-        myChart.setOption(option);
+      const dailyData = this.currentUnit24hPowerData;
+      if (dailyData.length === 0) {
+        console.warn('24h用电量数据为空，无法渲染图表');
+        return;
       }
+      const times = dailyData.map(item => item.time);
+      const powerConsumptions = dailyData.map(item => item.powerConsumption);
+
+      const chartDom = document.getElementById('daily-power-chart-container');
+      const myChart = echarts.init(chartDom);
+      const option = {
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'category',
+          data: times
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            name: '24h 用电量',
+            type: 'line',
+            data: powerConsumptions,
+            lineStyle: {
+              color: '#1890ff',
+              width: 2,
+              type: 'solid'
+            },
+            itemStyle: {
+              color: '#1890ff',
+              borderColor: '#fff',
+              borderWidth: 2
+            }
+          }
+        ]
+      };
+
+      myChart.setOption(option);
+      this.chartInstances.dailyPowerChart = myChart;
     },
     renderSwitchChartBottom() {
-      if (this.currentUnit) {
-        const dailyData = this.getDailyData(this.currentUnit.id);
-        const hours = Array.from({ length: 24 }, (_, i) => i);
-        const switchStatus = dailyData.map(item => item.status === '开启' ? 1 : 0);
+      const dailyData = this.currentUnit24hSwitchData;
+      if (dailyData.length === 0) {
+        console.warn('24h开关情况数据为空，无法渲染图表');
+        return;
+      }
+      const hours = dailyData.map(item => item.hour);
+      const switchStatus = dailyData.map(item => item.isOn ? 1 : 0);
 
-        const chartDom = document.getElementById('switch-chart-bottom-container');
-        const myChart = echarts.init(chartDom);
-        const option = {
-          tooltip: {
-            trigger: 'axis',
-            axisPointer: {
-              type: 'shadow'
-            }
-          },
-          xAxis: {
-            type: 'category',
-            data: hours
-          },
-          yAxis: {
-            type: 'value'
-          },
-          series: [
-            {
-              name: '24h开关情况',
-              type: 'bar',
-              data: switchStatus,
-              itemStyle: {
-                color: function (params) {
-                  return params.value === 1 ? '#5cb85c' : '#d9534f';
-                }
+      const chartDom = document.getElementById('switch-chart-bottom-container');
+      const myChart = echarts.init(chartDom);
+      const option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: hours
+        },
+        yAxis: {
+          type: 'value'
+        },
+        series: [
+          {
+            name: '24h 开关情况',
+            type: 'bar',
+            data: switchStatus,
+            itemStyle: {
+              color: function (params) {
+                return params.value === 1 ? '#5cb85c' : '#d9534f';
               }
             }
-          ]
-        };
+          }
+        ]
+      };
 
-        myChart.setOption(option);
-      }
+      myChart.setOption(option);
+      this.chartInstances.switchChartBottom = myChart;
     },
     goBackToList() {
       this.showUnitDetail = false;
-      this.currentUnit = null;
-      // 销毁图表实例，以便下次重新渲染
-      const chartDom1 = document.getElementById('daily-cooling-chart-container');
-      const chartDom2 = document.getElementById('daily-power-chart-container');
-      const chartDom3 = document.getElementById('switch-chart-bottom-container');
-      if (chartDom1) echarts.dispose(chartDom1);
-      if (chartDom2) echarts.dispose(chartDom2);
-      if (chartDom3) echarts.dispose(chartDom3);
+      Object.values(this.chartInstances).forEach(chart => {
+        if (chart) {
+          echarts.dispose(chart);
+        }
+      });
+      this.errorMessage = ''; // 清空错误信息
+    },
+    reRenderCharts() {
+      if (this.currentUnit) {
+        this.renderDailyCoolingChart();
+        this.renderDailyPowerChart();
+        this.renderSwitchChartBottom();
+      }
+    },
+    async fetchData() {
+      this.isLoading = true;
+      try {
+        await this.fetchScheduledUnits();
+      } catch (error) {
+        this.errorMessage = '获取数据失败，请检查网络或稍后重试';
+        console.error(this.errorMessage, error);
+      } finally {
+        this.isLoading = false;
+      }
     }
+  },
+  created() {
+    this.fetchData();
+  },
+  activated() {
+    this.fetchData();
+  },
+  mounted() {
+    this.fetchData();
   }
 };
 </script>
