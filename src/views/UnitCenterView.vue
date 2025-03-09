@@ -1,13 +1,16 @@
 <template>
   <!-- 机组列表界面 -->
   <div v-if="!showUnitDetail">
-    <div v-for="unit in filteredUnits" :key="unit.id" class="custom-unit-card" @click="showUnitDetailPage(unit.id)">
-      <h3 class="card-title">#{{ unit.id }}</h3>
-      <p class="card-type">类型: {{ unit.type }}</p>
-      <!-- 显示部分通用参数示例 -->
-      <p v-if="unit.unitParams" class="card-param">额定制冷量: {{ unit.unitParams.param1 }}</p>
-      <p v-if="unit.coolingModeParams" class="card-param">制冷模式额定制冷量: {{ unit.coolingModeParams.param1 }}</p>
-    </div>
+    <div v-for="unit in filteredUnits" :key="unit.id" 
+     class="custom-unit-card" 
+     :class="getCardClass(unit.type)" 
+     @click="showUnitDetailPage(unit.id)">
+  <h3 class="card-title">#{{ unit.id }}</h3>
+  <p class="card-type">类型: {{ unit.type }}</p>
+  <!-- 显示部分通用参数示例 -->
+  <p v-if="unit.unitParams" class="card-param">额定制冷量: {{ unit.unitParams.param1 }}</p>
+  <p v-if="unit.coolingModeParams" class="card-param">制冷模式额定制冷量: {{ unit.coolingModeParams.param1 }}</p>
+</div>
   </div>
 
   <!-- 机组详情界面 -->
@@ -23,18 +26,40 @@
           <span class="unit-kind">{{ currentUnit.type }}</span>
         </div>
         <div class="unit-image">
-          <img :src="currentUnit.imageUrl || ''" alt="机组图片">
-        </div>
-        <div class="param-table">
-          <table>
-            <tbody>
-              <tr v-for="(param, index) in unitParams" :key="index">
-                <td class="param-label">{{ param.label }}:</td>
-                <td class="param-value">{{ currentUnit.unitParams[index] }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+  <img :src="getUnitImage(currentUnit.type)" alt="机组图片">
+</div>
+<div class="param-table">
+  <!-- 螺杆或基载机组 -->
+  <template v-if="currentUnit.type === '螺杆' || currentUnit.type === '基载'">
+    <div class="param-row">
+      <div v-for="(param, index) in unitParams" :key="index" class="param-container">
+        <div class="param-value">{{ currentUnit.unitParams[param.label] }}</div>
+        <div class="param-label">{{ param.label }}</div>
+      </div>
+    </div>
+  </template>
+
+  <!-- 双工况机组 -->
+  <template v-else-if="currentUnit.type === '双工况'">
+    <!-- 制冷模式参数 -->
+    <div class="mode-title">制冷模式参数</div>
+    <div class="param-row">
+      <div v-for="(param, index) in coolingModeParams" :key="'cooling-' + index" class="param-container">
+        <div class="param-value">{{ currentUnit.coolingModeParams[param.label] }}</div>
+        <div class="param-label">{{ param.label }}</div>
+      </div>
+    </div>
+
+    <!-- 制冰模式参数 -->
+    <div class="mode-title">制冰模式参数</div>
+    <div class="param-row">
+      <div v-for="(param, index) in iceModeParams" :key="'ice-' + index" class="param-container">
+        <div class="param-value">{{ currentUnit.iceModeParams[param.label] }}</div>
+        <div class="param-label">{{ param.label }}</div>
+      </div>
+    </div>
+  </template>
+</div>
         <div class="total-cooling-capacity">
           <span class="capacity-label">24h总制冷量:</span>
           <div class="cooling-values-box">
@@ -90,20 +115,38 @@ export default {
 
   },
   data() {
-    return {
-      showUnitDetail: false,
-      currentUnit: null,
-      // 螺杆和基载机组参数
-      unitParams: [
-        { label: '额定制冷量', type: 'number', value: 0 },
-        { label: '输入功率', type: 'number', value: 0 },
-        { label: 'PLR范围', type: 'range', value: [0, 1] },
-        { label: '泵体数量', type: 'number', value: 0 },
-        { label: '泵体耗电量', type: 'number', value: 0 },
-        { label: '最大可输送冷量', type: 'number', value: 0 },
-      ]
-    };
-  },
+  return {
+    showUnitDetail: false,
+    currentUnit: null,
+    // 螺杆和基载机组参数
+    unitParams: [
+      { label: '额定制冷量', type: 'number' },
+      { label: '输入功率', type: 'number' },
+      { label: 'PLR范围', type: 'range' },
+      { label: '泵体数量', type: 'number' },
+      { label: '泵体耗电量', type: 'number' },
+      { label: '最大可输送冷量', type: 'number' },
+    ],
+    // 双工况机组制冷模式参数
+    coolingModeParams: [
+      { label: '额定制冷量', type: 'number' },
+      { label: '输入功率', type: 'number' },
+      { label: 'PLR范围', type: 'range' },
+      { label: '泵体数量', type: 'number' },
+      { label: '泵体耗电量', type: 'number' },
+      { label: '最大可输送冷量', type: 'number' },
+    ],
+    // 双工况机组制冰模式参数
+    iceModeParams: [
+      { label: '额定制冷量', type: 'number' },
+      { label: '输入功率', type: 'number' },
+      { label: 'PLR范围', type: 'range' },
+      { label: '泵体数量', type: 'number' },
+      { label: '泵体耗电量', type: 'number' },
+      { label: '最大可输送冷量', type: 'number' },
+    ],
+  };
+},
   methods: {
     showUnitDetailPage(unitId) {
       this.currentUnit = this.units.find(unit => unit.id === unitId);
@@ -123,6 +166,22 @@ export default {
       }
       return 0;
     },
+    getCardClass(type) {
+    const classMap = {
+      '螺杆': 'card-screw',
+      '双工况': 'card-dual-mode',
+      '基载': 'card-base-load',
+    };
+    return classMap[type] || ''; // 如果类型未匹配，返回空字符串
+  },
+    getUnitImage(type) {
+    const imageMap = {
+      '螺杆': require('@/assets/luoganshi.png'),
+      '双工况': require('@/assets/lixinshi.png'),
+      '基载': require('@/assets/lixinshi.png'),
+    };
+    return imageMap[type] || ''; // 如果类型未匹配，返回空字符串
+  },
     getDailyData(unitId) {
       // 模拟不同机组的一天运行数据
       const unitDailyDataMap = {
@@ -308,8 +367,7 @@ body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background-color: #f4f4f9;
   color: #333;
-  overflow: hidden;
-  /* 隐藏body的滚动条 */
+  overflow: hidden; /* 隐藏body的滚动条 */
 }
 
 /* 卡片父元素，设置左对齐 */
@@ -320,15 +378,12 @@ div[v-if="!showUnitDetail"] {
 .custom-unit-card {
   float: left;
   clear: none;
-  /* 允许卡片在左侧相邻位置排列，不强制换行 */
   background-color: #fff;
-  border: none;
+  border: 2px solid #e0e0e0;
   border-radius: 10px;
   padding: 20px;
   width: calc(25% - 20px);
-  /* 增加左右间隙，使卡片间有横向空隙，可调整20px的值改变间隙大小 */
   margin: 0 10px 15px 0;
-  /* 上下左右都设置间隙，使卡片间有纵向和横向空隙，可调整值改变间隙大小 */
   cursor: pointer;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.3s ease;
@@ -343,7 +398,7 @@ div[v-if="!showUnitDetail"] {
 .card-title {
   color: #2c3e50;
   font-size: 20px;
-  margin-bottom: 10px;
+  font-weight: bold;
 }
 
 .card-type,
@@ -357,34 +412,31 @@ div[v-if="!showUnitDetail"] {
 .detail-container {
   display: flex;
   width: 100%;
-  height: 100%;
-  /* gap: 20px; */
-  flex-wrap: wrap;
-  /* 允许子元素换行，防止溢出 */
-  align-items: stretch;
-  /* 让子元素拉伸占满高度 */
+  height: 80%;
+  gap: 10px; /* 增加左右分栏的间距 */
+  padding: 40px;
+  background-color: #f9f9f900; /* 设置背景颜色 */
+  background-image: url('@/assets/unit-bg.png'); 
+  background-size: 100% 100%; /* 让背景图片宽度和高度分别匹配容器的宽度和高度 */
+  background-repeat: no-repeat; /* 防止背景图片重复 */
+  background-position: center; /* 背景图片居中显示 */
 }
 
 .left-section {
-  flex: 1;
-  background-color: #fff;
+  flex: 0.5;
+  background-color: #ffffff99;
   padding: 20px;
-  border-right: none;
-  /* 去除左边部分的右边框，消除分割线效果 */
-  border-top-left-radius: 10px;
-  border-bottom-left-radius: 10px;
-  /* 设置左边部分的圆角 */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 添加阴影效果 */
 }
 
 .right-section {
-  flex: 1;
+  flex: 2; /* 右边部分占据更多空间 */
+  background-color: #ffffff99;
   display: flex;
+  border-radius: 10px;
   flex-direction: column;
-  gap: 10px;
-  padding: 20px;
-  border-top-right-radius: 10px;
-  border-bottom-right-radius: 10px;
-  /* 设置右边部分的圆角 */
+  gap: 20px;
 }
 
 .top-info {
@@ -421,7 +473,6 @@ div[v-if="!showUnitDetail"] {
 .unit-image {
   width: 100%;
   height: 150px;
-  /* 适当降低图片高度，避免内容过多导致溢出 */
   overflow: hidden;
   margin-bottom: 10px;
 }
@@ -434,41 +485,75 @@ div[v-if="!showUnitDetail"] {
 
 .param-table {
   width: 100%;
-  margin-bottom: 10px;
+  margin-bottom: 25px;
 }
 
-.param-table table {
-  width: 100%;
-  border-collapse: collapse;
+.param-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px; /* 设置参数容器之间的间距 */
+  margin-bottom: 10px; /* 设置行与行之间的间距 */
 }
 
-.param-table td {
-  padding: 5px 0;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.param-label {
-  font-weight: bold;
-  color: #2c3e50;
-  width: 50%;
+.param-container {
+  background-image: url('@/assets/param-bg.png'); /* 设置背景图片路径 */
+  background-size: 100% 90%; /* 使背景图片覆盖整个容器 */
+  background-repeat: no-repeat; /* 防止背景图片重复 */
+  background-position: center; /* 背景图片居中显示 */
+  border: 1px solid #e0e0e000;
+  border-radius: 8px;
+  padding: 15px;
+  text-align: center;
+  flex: 1 0.5 calc(50% - 5px);
+  box-sizing: border-box;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .param-value {
-  color: #7f8c8d;
+  font-size: 18px; /* 设置数值字体大小 */
+  font-weight: bold; /* 设置数值字体加粗 */
+  color: #2c3e50; /* 设置数值字体颜色 */
+  margin-bottom: 5px; /* 设置数值与名称之间的间距 */
+}
+
+.param-label {
+  font-size: 14px; /* 设置名称字体大小 */
+  color: #003185; /* 设置名称字体颜色 */
+  position: relative;
+  top: 35px; /* 根据需要调整这个值，使标签向下移动 */
+}
+
+.mode-title {
+  font-weight: bold;
+  color: #2c3e50;
+  background-color: #f4f4f9;
+  padding: 8px 0;
+  text-align: center;
+  width: 100%; /* 模式标题占满一行 */
 }
 
 .total-cooling-capacity {
-  border: 1px solid #ccc;
+  border: 1px solid #cccccc00;
+  height: 15%;
+  background-image: url('@/assets/total-cooling-capacity-bg.png');
+  background-size: 100% 100%; 
   border-radius: 5px;
   padding: 10px;
   margin-top: 10px;
-  overflow: hidden;
-  /* 防止总制冷量部分内容溢出 */
+  overflow: hidden; 
+  display: flex; /* 启用 flexbox 布局 */
+  align-items: center; /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
 }
 
 .capacity-label {
   font-weight: bold;
   margin-right: 10px;
+  color: #ffffff;
 }
 
 .cooling-values-box {
@@ -477,10 +562,16 @@ div[v-if="!showUnitDetail"] {
 
 .cooling-value-box {
   border: 1px solid #ccc;
+  background-image: url('~@/assets/num-bg.png'); /* 尝试添加 ~ 前缀 */
+  background-size: 1em; /* 确保背景图片覆盖容器 */
+  background-position: center bottom; /* 让背景图片水平居中，垂直下对齐 */
+  background-repeat: no-repeat; /* 防止背景图片重复 */
   border-radius: 5px;
-  padding: 5px 8px;
+  padding: 0px 2px;
   margin-right: 5px;
   display: inline-block;
+  font-size: 2em;
+  color: #ffffff;
 }
 
 .right-section {
@@ -489,8 +580,7 @@ div[v-if="!showUnitDetail"] {
   flex-direction: column;
   gap: 10px;
   padding: 20px;
-  overflow: hidden;
-  /* 防止右边部分内容溢出 */
+  overflow: hidden; /* 防止右边部分内容溢出 */
 }
 
 .charts-top {
@@ -505,16 +595,14 @@ div[v-if="!showUnitDetail"] {
   background-color: #fff;
   padding: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  /* 防止图表部分内容溢出 */
+  overflow: hidden; /* 防止图表部分内容溢出 */
 }
 
 .switch-chart-bottom {
   background-color: #fff;
   padding: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  /* 防止图表部分内容溢出 */
+  overflow: hidden; /* 防止图表部分内容溢出 */
 }
 
 .section-title {
@@ -526,7 +614,21 @@ div[v-if="!showUnitDetail"] {
 .chart-container {
   width: 100%;
   height: 150px;
-  overflow: hidden;
-  /* 防止图表容器内容溢出 */
+  overflow: hidden; /* 防止图表容器内容溢出 */
+}
+
+.card-screw {
+  background-color: #e3f2fd; /* 螺杆机组颜色 */
+  border-color: #5994be;
+}
+
+.card-dual-mode {
+  background-color: #f5e5e5; /* 双工况机组颜色 */
+  border-color: #bf5454;
+}
+
+.card-base-load {
+  background-color: #fff3e0; /* 基载机组颜色 */
+  border-color: #c99e5a;
 }
 </style>
