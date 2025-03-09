@@ -6,16 +6,18 @@
       <div class="param-row">
         <div class="param-item">
           <label for="max-ice-storage">最大蓄冰量:</label>
-          <input id="max-ice-storage" type="number" v-model="storageParams.maxIceStorage" />
+          <input id="max-ice-storage" type="number" v-model="tempStorageParams.maxIceStorage"
+            @input="handleStorageParamChange" />
         </div>
         <div class="param-item">
           <label for="cooling-loss-coefficient">冷量损失系数:</label>
           <input id="cooling-loss-coefficient" type="number" step="0.001"
-            v-model="storageParams.coolingLossCoefficient" />
+            v-model="tempStorageParams.coolingLossCoefficient" @input="handleStorageParamChange" />
         </div>
         <div class="param-item">
           <label for="max-cooling-capacity">最大供冷量:</label>
-          <input id="max-cooling-capacity" type="number" v-model="storageParams.maxCoolingCapacity" />
+          <input id="max-cooling-capacity" type="number" v-model="tempStorageParams.maxCoolingCapacity"
+            @input="handleStorageParamChange" />
         </div>
       </div>
     </div>
@@ -24,9 +26,9 @@
   <div class="top-bar">
     <span class="label">添加机组</span>
     <select v-model="selectedUnitType">
-      <option value="螺杆">螺杆式制冷机组</option>
-      <option value="基载">基载离心式制冷机组</option>
-      <option value="双工况">双工况离心式制冷机组</option>
+      <option value="螺杆">螺杆机组</option>
+      <option value="基载">基载机组</option>
+      <option value="双工况">双工况机组</option>
     </select>
     <button @click="showModal = true">添加</button>
   </div>
@@ -40,7 +42,6 @@
           <span class="unit-id">#{{ unit.id }}</span>
           <div v-if="unit.type === '双工况'" class="mode-toggle" @click.stop="toggleMode(unit)">
             <span>{{ unit.currentMode === 'cooling' ? '制冷模式' : '制冰模式' }}</span>
-
           </div>
           <span class="unit-type">{{ unit.type }}</span>
         </div>
@@ -224,7 +225,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import { mapGetters, mapActions } from 'vuex';
 
@@ -268,28 +268,20 @@ export default {
         { label: '泵体耗电量', type: 'number', value: 0 },
         { label: '最大可输送冷量', type: 'number', value: 0 },
       ],
-      // 储能装置参数
-      storageParams: {
+      // 临时储能装置参数
+      tempStorageParams: {
         maxIceStorage: 0,
         coolingLossCoefficient: 0.001,
+        maxCoolingCapacity: 0
       },
       nextUnitId: 1, // 用于生成机组编号
+      isLoading: false // 新增：用于显示加载状态
     };
   },
   computed: {
-    ...mapGetters(['getUnits']),
+    ...mapGetters(['getTempUnits', 'getTempStorageParams']),
     units() {
-      // 检查units数据是否正确，确保每个unit对象都有id属性
-      const unitsFromStore = this.getUnits;
-      if (Array.isArray(unitsFromStore)) {
-        return unitsFromStore.map(unit => {
-          if (!unit.id) {
-            unit.id = this.nextUnitId++; // 如果没有id，生成一个
-          }
-          return unit;
-        });
-      }
-      return [];
+      return this.getTempUnits;
     },
     // 计算占位符数量
     placeholderCount() {
@@ -298,14 +290,21 @@ export default {
     },
   },
   methods: {
-    ...mapActions(['addUnit']),
+    ...mapActions([
+      'addTempUnit',
+      'saveEditedTempUnit',
+      'deleteTempUnit',
+      'fetchTempUnits',
+      'fetchTempStorageParams',
+      'saveTempStorageParams',
+      'startScheduling',
+      'saveStorageParams' // 新增：用于将临时数据保存到正式数据
+    ]),
     // 保存机组
-    saveUnit() {
+    async saveUnit() {
       const unitData = {
-        id: this.nextUnitId++,
         name: `机组${this.nextUnitId}`,
         type: this.selectedUnitType,
-        storageParams: { ...this.storageParams },
       };
 
       if (this.selectedUnitType === '螺杆' || this.selectedUnitType === '基载') {
@@ -316,27 +315,35 @@ export default {
         unitData.currentMode = 'cooling'; // 双工况机组默认初始模式为制冷模式
       }
 
-      this.addUnit(unitData);
-      this.showModal = false;
+      try {
+        await this.addTempUnit(unitData);
+        await this.fetchTempUnits(); // 添加成功后重新获取临时机组数据
+        this.nextUnitId++;
+        this.showModal = false;
+        console.log('机组添加成功');
+      } catch (error) {
+        console.error('机组添加失败:', error);
+        // 可以在这里添加提示用户的逻辑，比如使用this.$message.error('机组添加失败')
+      }
     },
     // 显示编辑弹窗
     showEditModal(unit) {
-      console.log("showEditModal被调用, unit.id:", unit.id); // 添加日志输出，检查方法是否被调用以及unit.id是否正确
-      this.showEditModalId = unit.id; // 设置要编辑的机组id，用于显示编辑弹窗
-      this.editUnitType = unit.type; // 设置当前编辑机组的类型
+      console.log("showEditModal被调用, unit.id:", unit.id);
+      this.showEditModalId = unit.id;
+      this.editUnitType = unit.type;
       // 初始化编辑参数
       if (unit.type === '螺杆' || unit.type === '基载') {
-        this.editUnitParams = [...unit.unitParams]; // 展开并复制机组参数
+        this.editUnitParams = [...unit.unitParams];
       } else if (unit.type === '双工况') {
         this.editUnitParams = {
-          coolingMode: [...unit.coolingModeParams], // 展开并复制制冷模式参数
-          iceMode: [...unit.iceModeParams] // 展开并复制制冰模式参数
+          coolingMode: [...unit.coolingModeParams],
+          iceMode: [...unit.iceModeParams]
         };
       }
-      this.editStorageParams = { ...unit.storageParams }; // 展开并复制储能装置参数
+      this.editStorageParams = { ...unit.tempStorageParams };
     },
     // 保存编辑后的机组
-    saveEditedUnit() {
+    async saveEditedUnit() {
       const unitId = this.showEditModalId;
       const unit = this.units.find(u => u.id === unitId);
       if (unit) {
@@ -346,32 +353,114 @@ export default {
           unit.coolingModeParams = [...this.editUnitParams.coolingMode];
           unit.iceModeParams = [...this.editUnitParams.iceMode];
         }
-        unit.storageParams = { ...this.editStorageParams };
+        unit.tempStorageParams = { ...this.editStorageParams };
+
+        try {
+          await this.saveEditedTempUnit(unit);
+          await this.fetchTempUnits(); // 编辑成功后重新获取临时机组数据
+          this.showEditModalId = null;
+          console.log('机组编辑成功');
+        } catch (error) {
+          console.error('机组编辑失败:', error);
+          // 可以在这里添加提示用户的逻辑，比如使用this.$message.error('机组编辑失败')
+        }
       }
-      this.showEditModalId = null;
     },
     // 删除机组
-    deleteUnit() {
+    async deleteUnit() {
       const unitId = this.showEditModalId;
-      const index = this.units.findIndex(u => u.id === unitId);
-      if (index !== -1) {
-        this.units.splice(index, 1);
+      try {
+        await this.deleteTempUnit(unitId);
+        await this.fetchTempUnits(); // 删除成功后重新获取临时机组数据
+        this.showEditModalId = null;
+        console.log('机组删除成功');
+      } catch (error) {
+        console.error('机组删除失败:', error);
+        // 可以在这里添加提示用户的逻辑，比如使用this.$message.error('机组删除失败')
       }
-      this.showEditModalId = null;
     },
     // 切换双工况机组的模式
     toggleMode(unit) {
       unit.currentMode = unit.currentMode === 'cooling' ? 'ice' : 'cooling';
     },
     // 开始调度预测方法，可根据实际需求实现具体逻辑
-    startSchedulingPrediction() {
-      //在这接入api后端调用
-      alert('开始调度预测');
+    async startSchedulingPrediction() {
+      try {
+        // 将临时储能参数保存到正式数据
+        await this.saveStorageParams(this.tempStorageParams);
+        await this.startScheduling();
+        console.log('调度预测已启动');
+        await this.fetchTempUnits();
+        alert('调度预测已启动，请切换到相应界面查看结果');
+      } catch (error) {
+        console.error('启动调度预测失败:', error);
+        alert('启动调度预测失败，请检查网络或联系管理员');
+      }
+    },
+    // 处理临时储能装置参数变化
+    handleStorageParamChange() {
+      this.saveTempStorageParams(this.tempStorageParams)
+        .then(() => {
+          console.log('临时储能装置参数保存成功');
+        })
+        .catch((error) => {
+          console.error('临时储能装置参数保存失败:', error);
+          // 可以在这里添加提示用户的逻辑，比如使用this.$message.error('临时储能装置参数保存失败')
+        });
     }
   },
+  created() {
+    this.isLoading = true;
+    this.fetchTempUnits().then(() => {
+      this.fetchTempStorageParams().then(() => {
+        this.tempStorageParams = { ...this.getTempStorageParams };
+        this.isLoading = false;
+      });
+    });
+    this.fetchTempStorageParams().then(() => {
+      const defaultParams = {
+        maxIceStorage: 0,
+        coolingLossCoefficient: 0.001,
+        maxCoolingCapacity: 0
+      };
+      this.tempStorageParams = { ...this.getTempStorageParams, ...defaultParams };
+      if (Object.keys(this.getTempStorageParams).length === 0) {
+        this.saveTempStorageParams(defaultParams)
+          .then(() => {
+            console.log('默认临时储能装置参数已保存到后端');
+          })
+          .catch((error) => {
+            console.error('保存默认临时储能装置参数失败:', error);
+          });
+      }
+      this.isLoading = false;
+    });
+  },
+  activated() {
+    this.isLoading = true;
+    this.fetchTempUnits().then(() => {
+      this.fetchTempStorageParams().then(() => {
+        this.tempStorageParams = { ...this.getTempStorageParams };
+        this.isLoading = false;
+      });
+    });
+  },
+  beforeUnmount() {
+    // 组件卸载时重置一些状态
+    this.showEditModalId = null;
+    this.editUnitParams = {};
+    this.editStorageParams = {
+      maxIceStorage: 0,
+      coolingLossCoefficient: 0.001,
+    };
+    this.tempStorageParams = {
+      maxIceStorage: 0,
+      coolingLossCoefficient: 0.001,
+      maxCoolingCapacity: 0
+    };
+  }
 };
 </script>
-
 <style>
 /* 引入 Google 字体 */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
@@ -563,7 +652,7 @@ body {
 /* 机组列表样式调整 */
 .unit-list {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   /* 每行三个卡片 */
   gap: 20px;
 }
@@ -695,12 +784,7 @@ body {
 /* 保存和删除按钮样式 */
 .save-button {
   padding: 10px 20px;
-<<<<<<< Updated upstream
   background-color: #42b983;
-=======
-  /* 将 10px 20px 改为 2%，根据父元素宽度调整内边距 */
-  background-color: #42b1b9;
->>>>>>> Stashed changes
   color: white;
   border: none;
   border-radius: 4px;
@@ -711,7 +795,7 @@ body {
 }
 
 .save-button:hover {
-  background-color: #42b1b9;
+  background-color: #3aa876;
 }
 
 .delete-button {
