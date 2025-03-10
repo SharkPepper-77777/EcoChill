@@ -13,7 +13,8 @@ const apiEndpoints = {
   storage: `${baseUrl}/storage`,
   tempStorage: `${baseUrl}/temp_storage`, // 新增临时储能设备参数API端点
   startScheduling: `${baseUrl}/start_scheduling`,
-  unitById: '${baseUrl}/units/:unit_id'
+  unitById: '${baseUrl}/units/:unit_id',
+  unitsTotal: `${baseUrl}/units/total` // 新增获取机组数据总和的端点
 };
 
 export default createStore({
@@ -25,6 +26,7 @@ export default createStore({
     scheduledUnits: [], // 存储点击开始调度预测后的数据
     nextScheduledUnitId: 1, // 用于生成正式记录的机组编号
     selectedUnit: null,
+    unitsTotalData: null, // 新增，用于存储机组数据总和
     storageParams: {
       maxIceStorage: 0,
       coolingLossCoefficient: 0.001,
@@ -43,7 +45,8 @@ export default createStore({
     getScheduledUnits: (state) => state.scheduledUnits,
     getStorageParams: (state) => state.storageParams,
     getTempStorageParams: (state) => state.tempStorageParams,// 新增获取临时储能设备参数的getter
-    getSelectedUnit: (state) => state.selectedUnit
+    getSelectedUnit: (state) => state.selectedUnit,
+    getUnitsTotalData: (state) => state.unitsTotalData
   },
   mutations: {
     login(state, user) {
@@ -96,7 +99,10 @@ export default createStore({
     },
     setSelectedUnit(state, unit) {
       state.selectedUnit = unit;
-    }
+    },
+    setUnitsTotalData(state, data) {
+      state.unitsTotalData = data;
+    },
   },
   actions: {
     async login({ commit }, { username, password }) {
@@ -245,18 +251,27 @@ export default createStore({
       } catch (error) {
         console.error('保存临时储能设备参数时出现错误：', error);
       }
-    }
-  },
-  async getUnitById({ commit }, unitId) {
-    try {
-      const url = apiEndpoints.unitById.replace(':unit_id', unitId);
-      const response = await axios.get(url);
-      commit('setSelectedUnit', response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`获取 ID 为 ${unitId} 的机组数据时出现错误：`, error);
-      return null;
-    }
+    },
+    async getUnitById({ commit }, unitId) {
+      try {
+        const url = apiEndpoints.unitById.replace(':unit_id', unitId);
+        const response = await axios.get(url);
+        commit('setSelectedUnit', response.data);
+        return response.data;
+      } catch (error) {
+        console.error(`获取 ID 为 ${unitId} 的机组数据时出现错误：`, error);
+        return null;
+      }
+    },
+    async fetchUnitsTotalData({ commit }) {
+      console.log('fetchUnitsTotalData 被调用'); // 添加日志
+      try {
+        const response = await axios.get(apiEndpoints.unitsTotal);
+        commit('setUnitsTotalData', response.data);
+      } catch (error) {
+        console.error('获取机组数据总和时出现错误：', error);
+      }
+    },
   },
   modules: {}
 });

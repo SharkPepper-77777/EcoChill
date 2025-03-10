@@ -20,22 +20,22 @@
       </div>
       <!-- 机组总数和饼图 -->
       <div class="unit-pie-container">
-  <!-- 左侧容器：时间框和机组总数框 -->
-  <div class="left-container">
-    <!-- 时间框 -->
-    <div class="data-time">
-      <span class="data-label">数据生成时间</span>
-      <span class="data-value">2023-10-25 14:30</span>
-    </div>
-    <!-- 机组总数框 -->
-    <div class="unit-count">
-      <span class="data-label">机组总数</span>
-      <span class="data-value">7</span>
-    </div>
-  </div>
-  <!-- 饼图框 -->
-  <div ref="pieChart" class="pie-chart"></div>
-</div>
+        <!-- 左侧容器：时间框和机组总数框 -->
+        <div class="left-container">
+          <!-- 时间框 -->
+          <div class="data-time">
+            <span class="data-label">数据生成时间</span>
+            <span class="data-value">2023-10-25 14:30</span>
+          </div>
+          <!-- 机组总数框 -->
+          <div class="unit-count">
+            <span class="data-label">机组总数</span>
+            <span class="data-value">7</span>
+          </div>
+        </div>
+        <!-- 饼图框 -->
+        <div ref="pieChart" class="pie-chart"></div>
+      </div>
     </div>
     <!-- 右侧区域：24H 制冷折线图 -->
     <div class="right-section">
@@ -134,340 +134,340 @@ export default {
       };
       pieChart.setOption(option);
     },
-// 初始化 24H 制冷折线图
-initCoolingLineChart() {
-  // 生成三种机组的随机数据
-  const dataA = Array.from({ length: 24 }, () => Math.floor(Math.random() * 100));
-  const dataB = Array.from({ length: 24 }, () => Math.floor(Math.random() * 100));
-  const dataC = Array.from({ length: 24 }, () => Math.floor(Math.random() * 100));
+    // 初始化 24H 制冷折线图
+    initCoolingLineChart() {
+      // 生成三种机组的随机数据
+      const dataA = Array.from({ length: 24 }, () => Math.floor(Math.random() * 100));
+      const dataB = Array.from({ length: 24 }, () => Math.floor(Math.random() * 100));
+      const dataC = Array.from({ length: 24 }, () => Math.floor(Math.random() * 100));
 
-  // 计算总制冷量（三种机组制冷量之和）
-  const totalData = dataA.map((value, index) => value + dataB[index] + dataC[index]);
+      // 计算总制冷量（三种机组制冷量之和）
+      const totalData = dataA.map((value, index) => value + dataB[index] + dataC[index]);
 
-  const option = {
-    title: {
-      text: '24H 制冷',
-      left: 'center',
-      textStyle: {
-        fontSize: 16,
-        color: '#60b0e8',
-        fontWeight: 'bold'
-      }
-    },
-    xAxis: {
-      type: 'category',
-      data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    yAxis: {
-      type: 'value',
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    series: [
-      // 柱状图部分 - 机组A
-      {
-        name: '机组A',
-        type: 'bar',
-        stack: '机组',
-        itemStyle: {
-          color: 'rgba(116, 143, 252, 0.6)', // 降低透明度
-          barBorderRadius: [3, 3, 0, 0],
-          shadowColor: 'rgba(0, 0, 0, 0.3)',
-          shadowBlur: 5,
-          shadowOffsetX: 2,
-          shadowOffsetY: 2
+      const option = {
+        title: {
+          text: '24H 制冷',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#60b0e8',
+            fontWeight: 'bold'
+          }
         },
-        data: dataA
-      },
-      // 柱状图部分 - 机组B
-      {
-        name: '机组B',
-        type: 'bar',
-        stack: '机组',
-        itemStyle: {
-          color: 'rgba(219, 228, 255, 0.6)', // 降低透明度
-          barBorderRadius: [3, 3, 0, 0],
-          shadowColor: 'rgba(0, 0, 0, 0.3)',
-          shadowBlur: 5,
-          shadowOffsetX: 2,
-          shadowOffsetY: 2
+        xAxis: {
+          type: 'category',
+          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
         },
-        data: dataB
-      },
-      // 柱状图部分 - 机组C
-      {
-        name: '机组C',
-        type: 'bar',
-        stack: '机组',
-        itemStyle: {
-          color: 'rgba(160, 167, 250, 0.6)', // 降低透明度
-          barBorderRadius: [3, 3, 0, 0],
-          shadowColor: 'rgba(0, 0, 0, 0.3)',
-          shadowBlur: 5,
-          shadowOffsetX: 2,
-          shadowOffsetY: 2
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
         },
-        data: dataC
-      },
-      // 折线图部分 - 总制冷量
-      {
-        name: '总制冷量',
-        type: 'line',
-        smooth: true,
-        lineStyle: { color: '#60b0e8', width: 3 }, // 加粗线条
-        itemStyle: { color: '#60b0e8', borderWidth: 2, borderColor: '#fff' },
-        symbol: 'circle',
-        symbolSize: 8,
-        data: totalData, // 使用总制冷量数据
-        z: 10 // 确保折线图在柱状图上方
-      }
-    ],
-    grid: { left: '10%', right: '10%', bottom: '13%',top: '23%', containLabel: true },
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'axis',
-      textStyle: {
-        fontSize: 12,
-        color: '#252525'
-      },
-      formatter: function (params) {
-        let result = params[0].name + '<br>';
-        for (let i = 0; i < params.length; i++) {
-          result += params[i].seriesName + ': ' + params[i].value + '<br>';
+        series: [
+          // 柱状图部分 - 机组A
+          {
+            name: '机组A',
+            type: 'bar',
+            stack: '机组',
+            itemStyle: {
+              color: 'rgba(116, 143, 252, 0.6)', // 降低透明度
+              barBorderRadius: [3, 3, 0, 0],
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowBlur: 5,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            },
+            data: dataA
+          },
+          // 柱状图部分 - 机组B
+          {
+            name: '机组B',
+            type: 'bar',
+            stack: '机组',
+            itemStyle: {
+              color: 'rgba(219, 228, 255, 0.6)', // 降低透明度
+              barBorderRadius: [3, 3, 0, 0],
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowBlur: 5,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            },
+            data: dataB
+          },
+          // 柱状图部分 - 机组C
+          {
+            name: '机组C',
+            type: 'bar',
+            stack: '机组',
+            itemStyle: {
+              color: 'rgba(160, 167, 250, 0.6)', // 降低透明度
+              barBorderRadius: [3, 3, 0, 0],
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowBlur: 5,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            },
+            data: dataC
+          },
+          // 折线图部分 - 总制冷量
+          {
+            name: '总制冷量',
+            type: 'line',
+            smooth: true,
+            lineStyle: { color: '#60b0e8', width: 3 }, // 加粗线条
+            itemStyle: { color: '#60b0e8', borderWidth: 2, borderColor: '#fff' },
+            symbol: 'circle',
+            symbolSize: 8,
+            data: totalData, // 使用总制冷量数据
+            z: 10 // 确保折线图在柱状图上方
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '13%', top: '23%', containLabel: true },
+        backgroundColor: 'transparent',
+        tooltip: {
+          trigger: 'axis',
+          textStyle: {
+            fontSize: 12,
+            color: '#252525'
+          },
+          formatter: function (params) {
+            let result = params[0].name + '<br>';
+            for (let i = 0; i < params.length; i++) {
+              result += params[i].seriesName + ': ' + params[i].value + '<br>';
+            }
+            return result;
+          }
         }
-        return result;
-      }
+      };
+      this.coolingLineChart.setOption(option);
+    },
+
+    // 初始化 24h 购电量折线图
+    initPurchaseLineChart() {
+      const option = {
+        title: {
+          text: '24h 购电量',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#3b5bdb',
+            fontWeight: 'bold'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
+        },
+        series: [
+          {
+            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 200)), // 生成 24 个随机数据点
+            type: 'line',
+            smooth: true,
+            lineStyle: { color: '#3b5bdb', width: 2 },
+            itemStyle: { color: '#3b5bdb', borderWidth: 2, borderColor: '#fff' },
+            symbol: 'circle',
+            symbolSize: 8,
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(59, 91, 219, 0.3)' },
+                { offset: 1, color: 'rgba(186,220,255, 0)' }
+              ])
+            }
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
+        backgroundColor: 'transparent'
+      };
+      this.purchaseLineChart.setOption(option);
+    },
+
+    // 初始化 24h 开关设备情况柱状图
+    initEquipmentBarChart() {
+      const option = {
+        title: {
+          text: '24h 开关设备情况',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#748ffc',
+            fontWeight: 'bold'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
+        },
+        series: [
+          {
+            name: '机组A',
+            type: 'bar',
+            stack: '机组',
+            itemStyle: {
+              color: '#748ffc',
+              barBorderRadius: [3, 3, 0, 0],
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowBlur: 5,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            },
+            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
+          },
+          {
+            name: '机组B',
+            type: 'bar',
+            stack: '机组',
+            itemStyle: {
+              color: '#dbe4ff',
+              barBorderRadius: [3, 3, 0, 0],
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowBlur: 5,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            },
+            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
+          },
+          {
+            name: '机组C',
+            type: 'bar',
+            stack: '机组',
+            itemStyle: {
+              color: '#a0a7fa',
+              barBorderRadius: [3, 3, 0, 0],
+              shadowColor: 'rgba(0, 0, 0, 0.3)',
+              shadowBlur: 5,
+              shadowOffsetX: 2,
+              shadowOffsetY: 2
+            },
+            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
+        backgroundColor: 'transparent',
+        tooltip: {
+          trigger: 'axis',
+          textStyle: {
+            fontSize: 12,
+            color: '#252525'
+          },
+          formatter: function (params) {
+            let result = params[0].name + '<br>';
+            for (let i = 0; i < params.length; i++) {
+              result += params[i].seriesName + ': ' + params[i].value + '<br>';
+            }
+            return result;
+          }
+        }
+      };
+      this.equipmentBarChart.setOption(option);
+    },
+
+    // 初始化 24h 购电成本折线图
+    initCostLineChart() {
+      const option = {
+        title: {
+          text: '24h 购电成本',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#91a7ff',
+            fontWeight: 'bold'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
+        },
+        series: [
+          {
+            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 100)), // 生成 24 个随机数据点
+            type: 'line',
+            smooth: true,
+            lineStyle: { color: '#91a7ff', width: 2 },
+            itemStyle: { color: '#91a7ff', borderWidth: 2, borderColor: '#' },
+            symbol: 'circle',
+            symbolSize: 8,
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(145,167,255, 0.3)' },
+                { offset: 1, color: 'rgba(219,228,255, 0)' }
+              ])
+            }
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
+        backgroundColor: 'transparent'
+      };
+      this.costLineChart.setOption(option);
+    },
+
+    // 初始化 24h 蓄冰量折线图
+    initIceLineChart() {
+      const option = {
+        title: {
+          text: '24h 蓄冰量',
+          left: 'center',
+          textStyle: {
+            fontSize: 16,
+            color: '#a9a3ca',
+            fontWeight: 'bold'
+          }
+        },
+        xAxis: {
+          type: 'category',
+          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
+        },
+        yAxis: {
+          type: 'value',
+          axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
+          axisLabel: { color: '#252525', fontSize: 12 }
+        },
+        series: [
+          {
+            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 200)), // 生成 24 个随机数据点
+            type: 'line',
+            smooth: true,
+            lineStyle: { color: '#a9a3ca', width: 2 },
+            itemStyle: { color: '#a9a3ca', borderWidth: 2, borderColor: '#fff' },
+            symbol: 'circle',
+            symbolSize: 8,
+            areaStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: 'rgba(169,163,202, 0.3)' },
+                { offset: 1, color: 'rgba(212,214, 234, 0)' }
+              ])
+            }
+          }
+        ],
+        grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
+        backgroundColor: 'transparent'
+      };
+      this.iceLineChart.setOption(option);
     }
-  };
-  this.coolingLineChart.setOption(option);
-},
-
-// 初始化 24h 购电量折线图
-initPurchaseLineChart() {
-  const option = {
-    title: {
-      text: '24h 购电量',
-      left: 'center',
-      textStyle: {
-        fontSize: 16,
-        color: '#3b5bdb',
-        fontWeight: 'bold'
-      }
-    },
-    xAxis: {
-      type: 'category',
-      data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    yAxis: {
-      type: 'value',
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    series: [
-      {
-        data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 200)), // 生成 24 个随机数据点
-        type: 'line',
-        smooth: true,
-        lineStyle: { color: '#3b5bdb', width: 2 },
-        itemStyle: { color: '#3b5bdb', borderWidth: 2, borderColor: '#fff' },
-        symbol: 'circle',
-        symbolSize: 8,
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(59, 91, 219, 0.3)' },
-            { offset: 1, color: 'rgba(186,220,255, 0)' }
-          ])
-        }
-      }
-    ],
-    grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
-    backgroundColor: 'transparent'
-  };
-  this.purchaseLineChart.setOption(option);
-},
-
-// 初始化 24h 开关设备情况柱状图
-initEquipmentBarChart() {
-  const option = {
-    title: {
-      text: '24h 开关设备情况',
-      left: 'center',
-      textStyle: {
-        fontSize: 16,
-        color: '#748ffc',
-        fontWeight: 'bold'
-      }
-    },
-    xAxis: {
-      type: 'category',
-      data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    yAxis: {
-      type: 'value',
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    series: [
-      {
-        name: '机组A',
-        type: 'bar',
-        stack: '机组',
-        itemStyle: {
-          color: '#748ffc',
-          barBorderRadius: [3, 3, 0, 0],
-          shadowColor: 'rgba(0, 0, 0, 0.3)',
-          shadowBlur: 5,
-          shadowOffsetX: 2,
-          shadowOffsetY: 2
-        },
-        data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
-      },
-      {
-        name: '机组B',
-        type: 'bar',
-        stack: '机组',
-        itemStyle: {
-          color: '#dbe4ff',
-          barBorderRadius: [3, 3, 0, 0],
-          shadowColor: 'rgba(0, 0, 0, 0.3)',
-          shadowBlur: 5,
-          shadowOffsetX: 2,
-          shadowOffsetY: 2
-        },
-        data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
-      },
-      {
-        name: '机组C',
-        type: 'bar',
-        stack: '机组',
-        itemStyle: {
-          color: '#a0a7fa',
-          barBorderRadius: [3, 3, 0, 0],
-          shadowColor: 'rgba(0, 0, 0, 0.3)',
-          shadowBlur: 5,
-          shadowOffsetX: 2,
-          shadowOffsetY: 2
-        },
-        data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
-      }
-    ],
-    grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'axis',
-      textStyle: {
-        fontSize: 12,
-        color: '#252525'
-      },
-      formatter: function (params) {
-        let result = params[0].name + '<br>';
-        for (let i = 0; i < params.length; i++) {
-          result += params[i].seriesName + ': ' + params[i].value + '<br>';
-        }
-        return result;
-      }
-    }
-  };
-  this.equipmentBarChart.setOption(option);
-},
-
-// 初始化 24h 购电成本折线图
-initCostLineChart() {
-  const option = {
-    title: {
-      text: '24h 购电成本',
-      left: 'center',
-      textStyle: {
-        fontSize: 16,
-        color: '#91a7ff',
-        fontWeight: 'bold'
-      }
-    },
-    xAxis: {
-      type: 'category',
-      data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    yAxis: {
-      type: 'value',
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    series: [
-      {
-        data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 100)), // 生成 24 个随机数据点
-        type: 'line',
-        smooth: true,
-        lineStyle: { color: '#91a7ff', width: 2 },
-        itemStyle: { color: '#91a7ff', borderWidth: 2, borderColor: '#' },
-        symbol: 'circle',
-        symbolSize: 8,
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(145,167,255, 0.3)' },
-            { offset: 1, color: 'rgba(219,228,255, 0)' }
-          ])
-        }
-      }
-    ],
-    grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
-    backgroundColor: 'transparent'
-  };
-  this.costLineChart.setOption(option);
-},
-
-// 初始化 24h 蓄冰量折线图
-initIceLineChart() {
-  const option = {
-    title: {
-      text: '24h 蓄冰量',
-      left: 'center',
-      textStyle: {
-        fontSize: 16,
-        color: '#a9a3ca',
-        fontWeight: 'bold'
-      }
-    },
-    xAxis: {
-      type: 'category',
-      data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    yAxis: {
-      type: 'value',
-      axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
-      axisLabel: { color: '#252525', fontSize: 12 }
-    },
-    series: [
-      {
-        data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 200)), // 生成 24 个随机数据点
-        type: 'line',
-        smooth: true,
-        lineStyle: { color: '#a9a3ca', width: 2 },
-        itemStyle: { color: '#a9a3ca', borderWidth: 2, borderColor: '#fff' },
-        symbol: 'circle',
-        symbolSize: 8,
-        areaStyle: {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(169,163,202, 0.3)' },
-            { offset: 1, color: 'rgba(212,214, 234, 0)' }
-          ])
-        }
-      }
-    ],
-    grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
-    backgroundColor: 'transparent'
-  };
-  this.iceLineChart.setOption(option);
-}
   }
 };
 </script>
@@ -512,50 +512,56 @@ body {
       padding: 0; // 去除内边距
 
       .data-item {
-  padding: 2%;
-  border-radius: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 30%;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  transition: box-shadow 0.3s ease;
+        padding: 2%;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 30%;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        transition: box-shadow 0.3s ease;
 
-  &:hover {
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-  }
+        &:hover {
+          box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
 
         &:nth-child(1) {
           background: linear-gradient(135deg, #ffa2a2, #ff9696);
-          .data-label, .data-value {
+
+          .data-label,
+          .data-value {
             color: #682e26;
           }
         }
 
         &:nth-child(2) {
           background: linear-gradient(135deg, #ffeaa4, #ffeb78);
-          .data-label, .data-value {
+
+          .data-label,
+          .data-value {
             color: #805e00;
           }
         }
 
         &:nth-child(3) {
           background: linear-gradient(135deg, #95ffc1, #58ffa6);
-          .data-label, .data-value {
+
+          .data-label,
+          .data-value {
             color: #2c632c;
           }
         }
 
         .data-label {
-    font-size: 0.9em; // 使用百分比设置字体大小
-    font-weight: bold;
-  }
+          font-size: 0.9em; // 使用百分比设置字体大小
+          font-weight: bold;
+        }
 
-  .data-value {
-    font-size: 2em; // 使用百分比设置字体大小
-    font-weight: bold;
-    margin-top: 2px;
-  }
+        .data-value {
+          font-size: 2em; // 使用百分比设置字体大小
+          font-weight: bold;
+          margin-top: 2px;
+        }
       }
     }
 
