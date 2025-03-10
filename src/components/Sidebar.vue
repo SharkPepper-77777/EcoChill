@@ -1,7 +1,8 @@
 <template>
   <div class="sidebar">
     <div class="sidebar-header">
-      <h2>EcoChill</h2>
+      <!-- 将 h2 标签替换为 img 标签 -->
+      <img src="@/assets/header.png" alt="Logo" class="sidebar-logo">
     </div>
     <ul class="sidebar-menu">
       <li
@@ -88,12 +89,12 @@ export default {
   text-align: center;
 }
 
-.sidebar-header h2 {
-  margin: 0;
-  font-size: 24px;
-  font-family: 'Poppins', sans-serif; /* 使用 Google Fonts 字体 */
-  font-weight: 600; /* 字体粗细 */
-  color: white;
+/* 添加图片样式 */
+.sidebar-logo {
+  max-width: 80%; /* 最大宽度为父元素的 80% */
+  height: auto; /* 高度自适应 */
+  display: block; /* 使图片成为块级元素，方便居中 */
+  margin: 0 auto; /* 水平居中 */
 }
 
 .sidebar-menu {
@@ -102,6 +103,8 @@ export default {
   margin: 20px 0; /* 增加上下边距 */
   flex: 1; /* 填满剩余空间 */
 }
+
+/* 其他样式保持不变 */
 
 .sidebar-menu li {
   padding: 15px 20px;

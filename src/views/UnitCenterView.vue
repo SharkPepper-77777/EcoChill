@@ -55,7 +55,7 @@
           <span class="capacity-label">24h总制冷量:</span>
           <div class="cooling-values-box">
             <span v-for="(value, index) in get24hCoolingCapacity" :key="index">
-              <span class="cooling-value-box">{{ value }}</span>
+              <span class="cooling-value-box">{{5}}</span>
             </span>
           </div>
           <!-- 当总制冷量数据为空时显示提示 -->
@@ -265,12 +265,12 @@ export default {
             type: 'line',
             data: coolingCapacities,
             lineStyle: {
-              color: '#42b983',
+              color: '#91a7ff',
               width: 2,
               type: 'solid'
             },
             itemStyle: {
-              color: '#42b983',
+              color: '#91a7ff',
               borderColor: '#fff',
               borderWidth: 2
             }
@@ -309,12 +309,12 @@ export default {
             type: 'line',
             data: powerConsumptions,
             lineStyle: {
-              color: '#1890ff',
+              color: '#a0a7fa',
               width: 2,
               type: 'solid'
             },
             itemStyle: {
-              color: '#1890ff',
+              color: '#a0a7fa',
               borderColor: '#fff',
               borderWidth: 2
             }
@@ -357,7 +357,7 @@ export default {
             data: switchStatus,
             itemStyle: {
               color: function (params) {
-                return params.value === 1 ? '#5cb85c' : '#d9534f';
+                return params.value === 1 ? '#748ffc' : '#d9534f';
               }
             }
           }
@@ -613,7 +613,8 @@ div[v-if="!showUnitDetail"] {
 
 .cooling-value-box {
   border: 1px solid #cccccc00;
-  background-image: url('~@/assets/num-bg.png'); /* 尝试添加 ~ 前缀 */
+  background-image: url('~@/assets/num-bg.png'); /* 
+  尝试添加 ~ 前缀 */
   background-size: 0.8em; /* 确保背景图片覆盖容器 */
   background-position: center bottom; /* 让背景图片水平居中，垂直下对齐 */
   background-repeat: no-repeat; /* 防止背景图片重复 */
@@ -629,7 +630,7 @@ div[v-if="!showUnitDetail"] {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
   padding: 20px;
   overflow: hidden; /* 防止右边部分内容溢出 */
 }
@@ -644,16 +645,18 @@ div[v-if="!showUnitDetail"] {
 .daily-power-chart {
   flex: 1;
   background-color: #fff;
-  padding: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10Px;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden; /* 防止图表部分内容溢出 */
+  border-radius: 10px; 
 }
 
 .switch-chart-bottom {
   background-color: #fff;
   padding: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden; /* 防止图表部分内容溢出 */
+  border-radius: 10px; 
 }
 
 .section-title {
@@ -663,10 +666,12 @@ div[v-if="!showUnitDetail"] {
 }
 
 .chart-container {
+  position: relative; /* 设置为相对定位，以便背景图片元素相对于它定位 */
   width: 100%;
-  height: 150px;
-  overflow: hidden; /* 防止图表容器内容溢出 */
+  height: 250px;
+  overflow: hidden;
 }
+
 
 .card-screw {
   background-color: #e3f2fd; /* 螺杆机组颜色 */
