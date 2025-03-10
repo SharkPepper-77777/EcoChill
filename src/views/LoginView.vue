@@ -17,22 +17,12 @@
           <div class="input-container">
             <i class="fas fa-user icon"></i>
             <div class="divider"></div> <!-- 竖线分割 -->
-            <input
-              type="text"
-              v-model="username"
-              placeholder="请输入账号"
-              class="input-field"
-            />
+            <input type="text" v-model="username" placeholder="请输入账号" class="input-field" />
           </div>
           <div class="input-container">
             <i class="fas fa-lock icon"></i>
             <div class="divider"></div> <!-- 竖线分割 -->
-            <input
-              type="password"
-              v-model="password"
-              placeholder="请输入密码"
-              class="input-field"
-            />
+            <input type="password" v-model="password" placeholder="请输入密码" class="input-field" />
           </div>
         </div>
 
@@ -65,43 +55,59 @@
 </template>
 
 <script>
-export default {
-  name: 'LoginView',
-  data() {
-    return {
-      username: '',
-      password: '',
-      rememberPassword: false,
-      errorMessage: '', // 错误提示信息
-    };
-  },
-  methods: {
-    async handleLogin() {
-      // 调用 Vuex 的 login action
-      const success = await this.$store.dispatch('login', {
-        username: this.username,
-        password: this.password,
-      });
+import { ref, onMounted } from 'vue';
+import { useStore } from 'vuex';
 
-      if (success) {
-        // 登录成功，跳转到主界面
-        this.$router.push('/');
-      } else {
-        // 登录失败，显示错误提示
-        this.errorMessage = '用户名或密码错误';
+export default {
+  setup() {
+    const username = ref('');
+    const password = ref('');
+    const rememberPassword = ref(false);
+    const errorMessage = ref('');
+    const store = useStore();
+
+    const handleLogin = async () => {
+      try {
+        const result = await store.dispatch('login', { username: username.value, password: password.value });
+        if (result) {
+          // 登录成功，可进行页面跳转等操作
+          console.log('登录成功，准备跳转');
+          // 假设使用vue-router进行跳转，示例如下
+          // import { useRouter } from 'vue-router';
+          // const router = useRouter();
+          // router.push('/');
+        } else {
+          errorMessage.value = '用户名或密码错误';
+        }
+      } catch (error) {
+        errorMessage.value = '登录过程中出现错误，请检查网络或稍后重试';
+        console.error('登录错误：', error);
       }
-    },
-  },
+    };
+
+    onMounted(() => {
+      // 组件挂载时的操作，这里可以不写内容
+    });
+
+    return {
+      username,
+      password,
+      rememberPassword,
+      errorMessage,
+      handleLogin
+    };
+  }
 };
 </script>
 
 <style scoped lang="scss">
+/* 这里是你的样式代码，保持不变 */
 .login-container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-image: url('@/assets/background.png'); /* 背景图路径 */
+  background-image: url('@/assets/background.png');
   background-size: cover;
   background-position: center;
 }
@@ -110,16 +116,21 @@ export default {
   display: flex;
   width: 800px;
   height: 400px;
-  background-color: rgba(255, 255, 255, 0.1); /* 半透明卡片 */
+  background-color: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* 阴影效果 */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 .left-section {
   width: 50%;
-  background-color: #132a5000; /* 深蓝色 */
-  background-image: url('@/assets/left-image.png');
+  background-color: #132a5000;
+}
+
+.left-image {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
 }
 
 .right-section {
@@ -128,8 +139,8 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.13); /* 右侧半透明 */
-  backdrop-filter: blur(5px); /* 毛玻璃效果 */
+  background-color: rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(5px);
 }
 
 h1 {
@@ -166,7 +177,7 @@ h1 {
 
 .input-field {
   flex: 1;
-  background: transparent; /* 确保背景透明 */
+  background: transparent;
   border: none;
   color: white;
   outline: none;
@@ -195,7 +206,7 @@ h1 {
 }
 
 .forgot-password {
-  color: #93c5fd; /* 淡蓝色 */
+  color: #93c5fd;
   text-decoration: none;
   font-size: 14px;
 }
@@ -203,7 +214,7 @@ h1 {
 .login-button {
   width: 100%;
   padding: 10px;
-  background-color: #1e498a; /* 深蓝色 */
+  background-color: #1e498a;
   color: white;
   border: none;
   border-radius: 5px;
@@ -213,7 +224,7 @@ h1 {
 }
 
 .login-button:hover {
-  background-color: #1d74d8; /* 深蓝色（悬停效果） */
+  background-color: #1d74d8;
 }
 
 .register-link {
@@ -222,13 +233,13 @@ h1 {
   font-size: 14px;
 }
 
-.register-link .register {
-  color: #93c5fd; /* 淡蓝色 */
+.register-link.register {
+  color: #93c5fd;
   text-decoration: none;
 }
 
 .error-message {
-  color: #ff6b6b; /* 错误提示文字颜色 */
+  color: #ff6b6b;
   font-size: 14px;
   margin-top: -5%;
   text-align: center;

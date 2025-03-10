@@ -19,8 +19,8 @@ export default {
   computed: {
     // 从 Vuex Store 获取登录状态
     isLoggedIn() {
-      //return this.$store.state.isLoggedIn;
-     return true;
+      return this.$store.state.isLoggedIn;
+      // return true;
     },
   },
 };
@@ -28,21 +28,31 @@ export default {
 
 <style>
 /* 全局样式 */
-html, body {
-  margin: 0; /* 移除默认的外边距 */
-  padding: 0; /* 移除默认的填充 */
-  height: 100%; /* 确保 body 填满整个视口高度 */
-  background-color: #ECF5FC; /* 深蓝色背景 */
-  color: #ccd6f6; /* 浅蓝色文字 */
-  font-family: 'Poppins', sans-serif; /* 使用 Google Fonts 字体 */
+html,
+body {
+  margin: 0;
+  /* 移除默认的外边距 */
+  padding: 0;
+  /* 移除默认的填充 */
+  height: 100%;
+  /* 确保 body 填满整个视口高度 */
+  background-color: #ECF5FC;
+  /* 深蓝色背景 */
+  color: #ccd6f6;
+  /* 浅蓝色文字 */
+  font-family: 'Poppins', sans-serif;
+  /* 使用 Google Fonts 字体 */
 }
 
 #app {
-  height: 100%; /* 确保 #app 填满整个视口高度 */
-  font-family: 'Poppins', sans-serif; /* 使用 Google Fonts 字体 */
+  height: 100%;
+  /* 确保 #app 填满整个视口高度 */
+  font-family: 'Poppins', sans-serif;
+  /* 使用 Google Fonts 字体 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #ccd6f6; /* 浅蓝色文字 */
+  color: #ccd6f6;
+  /* 浅蓝色文字 */
 }
 </style>
