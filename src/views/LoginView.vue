@@ -2,7 +2,10 @@
   <div class="login-container">
     <div class="login-card">
       <!-- 左侧深蓝色矩形区域 -->
-      <div class="left-section"></div>
+      <div class="left-section">
+        <!-- 添加图片 -->
+        <img src="@/assets/left-image.png" alt="Left Image" class="left-image">
+      </div>
 
       <!-- 右侧登录操作区域 -->
       <div class="right-section">
@@ -32,8 +35,8 @@
             />
           </div>
         </div>
-        
- <div v-if="errorMessage" class="error-message">
+
+        <div v-if="errorMessage" class="error-message">
           {{ errorMessage }}
         </div>
         <!-- 选项部分 -->
@@ -55,7 +58,7 @@
         </div>
 
         <!-- 错误提示 -->
-       
+
       </div>
     </div>
   </div>
@@ -98,7 +101,7 @@ export default {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-image: url('@/assets/background.jpg'); /* 背景图路径 */
+  background-image: url('@/assets/background.png'); /* 背景图路径 */
   background-size: cover;
   background-position: center;
 }
@@ -115,7 +118,8 @@ export default {
 
 .left-section {
   width: 50%;
-  background-color: #132A50; /* 深蓝色 */
+  background-color: #132a5000; /* 深蓝色 */
+  background-image: url('@/assets/left-image.png');
 }
 
 .right-section {
@@ -124,7 +128,7 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.2); /* 右侧半透明 */
+  background-color: rgba(255, 255, 255, 0.13); /* 右侧半透明 */
   backdrop-filter: blur(5px); /* 毛玻璃效果 */
 }
 
@@ -199,7 +203,7 @@ h1 {
 .login-button {
   width: 100%;
   padding: 10px;
-  background-color: #1e3a8a; /* 深蓝色 */
+  background-color: #1e498a; /* 深蓝色 */
   color: white;
   border: none;
   border-radius: 5px;
@@ -209,7 +213,7 @@ h1 {
 }
 
 .login-button:hover {
-  background-color: #1d4ed8; /* 深蓝色（悬停效果） */
+  background-color: #1d74d8; /* 深蓝色（悬停效果） */
 }
 
 .register-link {

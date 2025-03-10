@@ -55,7 +55,7 @@
           <span class="capacity-label">24h总制冷量:</span>
           <div class="cooling-values-box">
             <span v-for="(value, index) in get24hCoolingCapacity" :key="index">
-              <span class="cooling-value-box">{{ value }}</span>
+              <span class="cooling-value-box">{{5}}</span>
             </span>
           </div>
           <!-- 当总制冷量数据为空时显示提示 -->
