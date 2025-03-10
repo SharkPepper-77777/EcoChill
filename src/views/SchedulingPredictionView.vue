@@ -26,9 +26,9 @@
   <div class="top-bar">
     <span class="label">添加机组</span>
     <select v-model="selectedUnitType">
-      <option value="螺杆">螺杆机组</option>
-      <option value="基载">基载机组</option>
-      <option value="双工况">双工况机组</option>
+      <option value="基载螺杆式">基载螺杆式机组</option>
+      <option value="基载离心式">基载离心式机组</option>
+      <option value="双工况离心式">双工况离心式机组</option>
     </select>
     <button @click="showModal = true">添加</button>
   </div>
@@ -37,17 +37,18 @@
   <div class="unit-list-container" style="overflow-y: auto;">
     <div class="unit-list">
       <div v-for="unit in units" :key="unit.id" class="unit-card" @click="showEditModal(unit)">
-    <div class="card-header">
-      <span class="unit-id">#{{ unit.id }}</span>
-      <div v-if="unit.type === '双工况'" class="mode-toggle" @click.stop="toggleMode(unit)" :style="modeToggleStyle(unit)">
-        <span>{{ unit.currentMode === 'cooling' ? '制冷模式' : '制冰模式' }}</span>
-      </div>
-      <span class="unit-type">{{ unit.type }}</span>
+        <div class="card-header">
+          <span class="unit-id">#{{ unit.id }}</span>
+          <div v-if="unit.type === '双工况离心式'" class="mode-toggle" @click.stop="toggleMode(unit)"
+            :style="modeToggleStyle(unit)">
+            <span>{{ unit.currentMode === 'cooling' ? '制冷模式' : '制冰模式' }}</span>
+          </div>
+          <span class="unit-type">{{ unit.type }}</span>
         </div>
 
         <!-- 底部：机组参数 -->
         <div class="card-footer">
-          <div v-if="unit.type === '螺杆' || unit.type === '基载'">
+          <div v-if="unit.type === '基载螺杆式' || unit.type === '基载离心式'">
             <div class="params-grid">
               <div v-for="(param, index) in unitParams" :key="index" class="param-row">
                 <span class="param-name">{{ param.label }}:</span>
@@ -62,7 +63,7 @@
               </div>
             </div>
           </div>
-          <div v-if="unit.type === '双工况'">
+          <div v-if="unit.type === '双工况离心式'">
             <div v-if="unit.currentMode === 'cooling'">
               <div class="params-grid cooling-mode-params">
                 <div v-for="(param, index) in coolingModeParams" :key="index" class="param-row">
@@ -112,7 +113,7 @@
       </div>
       <div class="section">
         <!-- 根据机组类型动态显示参数 -->
-        <div v-if="editUnitType === '螺杆' || editUnitType === '基载'">
+        <div v-if="editUnitType === '基载螺杆式' || editUnitType === '基载离心式'">
           <div class="param-row">
             <div v-for="(param, index) in unitParams" :key="index" class="param-item">
               <label>{{ param.label }}:</label>
@@ -127,7 +128,7 @@
             </div>
           </div>
         </div>
-        <div v-if="editUnitType === '双工况'">
+        <div v-if="editUnitType === '双工况离心式'">
           <h4>制冷模式参数</h4>
           <div class="param-row">
             <div v-for="(param, index) in coolingModeParams" :key="index" class="param-item">
@@ -173,7 +174,7 @@
       <div class="section">
         <h3>机组参数</h3>
         <!-- 螺杆和基载机组 -->
-        <div v-if="selectedUnitType === '螺杆' || selectedUnitType === '基载'">
+        <div v-if="selectedUnitType === '基载螺杆式' || selectedUnitType === '基载离心式'">
           <div class="param-row">
             <div v-for="(param, index) in unitParams" :key="index" class="param-item">
               <label>{{ param.label }}:</label>
@@ -189,7 +190,7 @@
           </div>
         </div>
         <!-- 双工况机组 -->
-        <div v-if="selectedUnitType === '双工况'">
+        <div v-if="selectedUnitType === '双工况离心式'">
           <h4>制冷模式参数</h4>
           <div class="param-row">
             <div v-for="(param, index) in coolingModeParams" :key="index" class="param-item">
@@ -230,7 +231,7 @@ import { mapGetters, mapActions } from 'vuex';
 export default {
   data() {
     return {
-      selectedUnitType: '螺杆', // 默认选择螺杆机组
+      selectedUnitType: '基载螺杆式', // 默认选择螺杆机组
       showModal: false, // 控制添加弹窗显示
       showEditModalId: null, // 控制编辑弹窗显示，存储当前编辑机组的id
       editUnitType: null, // 存储当前编辑机组的类型
@@ -306,9 +307,9 @@ export default {
         type: this.selectedUnitType,
       };
 
-      if (this.selectedUnitType === '螺杆' || this.selectedUnitType === '基载') {
+      if (this.selectedUnitType === '基载螺杆式' || this.selectedUnitType === '基载离心式') {
         unitData.unitParams = this.unitParams.map(param => param.value);
-      } else if (this.selectedUnitType === '双工况') {
+      } else if (this.selectedUnitType === '双工况离心式') {
         unitData.coolingModeParams = this.coolingModeParams.map(param => param.value);
         unitData.iceModeParams = this.iceModeParams.map(param => param.value);
         unitData.currentMode = 'cooling'; // 双工况机组默认初始模式为制冷模式
@@ -331,9 +332,9 @@ export default {
       this.showEditModalId = unit.id;
       this.editUnitType = unit.type;
       // 初始化编辑参数
-      if (unit.type === '螺杆' || unit.type === '基载') {
+      if (unit.type === '基载螺杆式' || unit.type === '基载离心式') {
         this.editUnitParams = [...unit.unitParams];
-      } else if (unit.type === '双工况') {
+      } else if (unit.type === '双工况离心式') {
         this.editUnitParams = {
           coolingMode: [...unit.coolingModeParams],
           iceMode: [...unit.iceModeParams]
@@ -346,9 +347,9 @@ export default {
       const unitId = this.showEditModalId;
       const unit = this.units.find(u => u.id === unitId);
       if (unit) {
-        if (unit.type === '螺杆' || unit.type === '基载') {
+        if (unit.type === '基载螺杆式' || unit.type === '基载离心式') {
           unit.unitParams = [...this.editUnitParams];
-        } else if (unit.type === '双工况') {
+        } else if (unit.type === '双工况离心式') {
           unit.coolingModeParams = [...this.editUnitParams.coolingMode];
           unit.iceModeParams = [...this.editUnitParams.iceMode];
         }
@@ -597,7 +598,8 @@ body {
   /* 限制最大高度，防止弹窗过高超出屏幕 */
   overflow-y: auto;
   box-sizing: border-box;
-  color: #3b81ba; /* 弹窗内容字体颜色 */
+  color: #3b81ba;
+  /* 弹窗内容字体颜色 */
   /* 让 padding 不影响宽度计算 */
 }
 
@@ -922,6 +924,7 @@ body {
   transition: background-color 0.3s;
   width: 40%;
   height: 40px;
-  color: white; /* 文字颜色设置为白色，确保在不同背景色下都能清晰显示 */
+  color: white;
+  /* 文字颜色设置为白色，确保在不同背景色下都能清晰显示 */
 }
 </style>

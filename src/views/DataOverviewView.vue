@@ -7,15 +7,15 @@
       <div class="data-display">
         <div class="data-item">
           <span class="data-label">总制冷</span>
-          <span class="data-value">15678</span>
+          <span class="data-value">51412</span>
         </div>
         <div class="data-item">
           <span class="data-label">总用电量</span>
-          <span class="data-value">2345</span>
+          <span class="data-value">14954</span>
         </div>
         <div class="data-item">
           <span class="data-label">用电成本</span>
-          <span class="data-value">163</span>
+          <span class="data-value">3298</span>
         </div>
       </div>
       <!-- 机组总数和饼图 -->
@@ -25,7 +25,7 @@
           <!-- 时间框 -->
           <div class="data-time">
             <span class="data-label">数据生成时间</span>
-            <span class="data-value">2023-10-25 14:30</span>
+            <span class="data-value">2023-3-11 14:30</span>
           </div>
           <!-- 机组总数框 -->
           <div class="unit-count">
@@ -105,9 +105,9 @@ export default {
             type: 'pie',
             radius: '60%',
             data: [
-              { value: 3, name: '机组A', itemStyle: { color: '#748ffc' } },
-              { value: 2, name: '机组B', itemStyle: { color: '#dbe4ff' } },
-              { value: 2, name: '机组C', itemStyle: { color: '#a0a7fa' } },
+              { value: 1, name: '基载螺杆式', itemStyle: { color: '#748ffc' } },
+              { value: 2, name: '基载离心式', itemStyle: { color: '#dbe4ff' } },
+              { value: 4, name: '双工况离心式', itemStyle: { color: '#a0a7fa' } },
             ],
             emphasis: {
               itemStyle: {
@@ -137,10 +137,9 @@ export default {
     // 初始化 24H 制冷折线图
     initCoolingLineChart() {
       // 生成三种机组的随机数据
-      const dataA = Array.from({ length: 24 }, () => Math.floor(Math.random() * 100));
-      const dataB = Array.from({ length: 24 }, () => Math.floor(Math.random() * 100));
-      const dataC = Array.from({ length: 24 }, () => Math.floor(Math.random() * 100));
-
+      const dataA = [0, 0, 0, 0, 0, 0, 0, 842.6146668, 0, 0, 0, 0, 0, 1410.47003, 557.6540309, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      const dataB = [0, 0, 0, 0, 0, 0, 0, 0, 1619.612378, 1928.415848, 2223.311835, 2173.186388, 1937.783375, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+      const dataC = [0, 0, 0, 0, 0, 0, 0, 5002.471592, 4028.209007, 5099.913661, 4374.069055, 4562.306543, 4756.485998, 5112, 5783.752469, 5786.889841, 5800.43098, 4451.574013, 3723.244432, 2696.885046, 0, 0, 0];
       // 计算总制冷量（三种机组制冷量之和）
       const totalData = dataA.map((value, index) => value + dataB[index] + dataC[index]);
 
@@ -156,7 +155,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          data: Array.from({ length: 24 }, (_, i) => `${i + 1}:00`), // 生成 24 个时间点
           axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
           axisLabel: { color: '#252525', fontSize: 12 }
         },
@@ -166,9 +165,9 @@ export default {
           axisLabel: { color: '#252525', fontSize: 12 }
         },
         series: [
-          // 柱状图部分 - 机组A
+          // 柱状图部分 - 基载螺杆式
           {
-            name: '机组A',
+            name: '基载螺杆式',
             type: 'bar',
             stack: '机组',
             itemStyle: {
@@ -181,9 +180,9 @@ export default {
             },
             data: dataA
           },
-          // 柱状图部分 - 机组B
+          // 柱状图部分 - 基载离心式
           {
-            name: '机组B',
+            name: '基载离心式',
             type: 'bar',
             stack: '机组',
             itemStyle: {
@@ -196,9 +195,9 @@ export default {
             },
             data: dataB
           },
-          // 柱状图部分 - 机组C
+          // 柱状图部分 - 双工况离心式
           {
-            name: '机组C',
+            name: '双工况离心式',
             type: 'bar',
             stack: '机组',
             itemStyle: {
@@ -258,7 +257,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          data: Array.from({ length: 24 }, (_, i) => `${i + 1}:00`), // 生成 24 个时间点
           axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
           axisLabel: { color: '#252525', fontSize: 12 }
         },
@@ -269,7 +268,32 @@ export default {
         },
         series: [
           {
-            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 200)), // 生成 24 个随机数据点
+            data: [
+              1086.317343,
+              2514.829046,
+              3266.391144,
+              3266.391144,
+              3256.391144,
+              1007.317343,
+              88.57933579,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1.234322792,
+              0,
+              0,
+              102.4870037,
+              118.1429991,
+              107.758433,
+              84.66936233,
+              65.77165459,
+              0,
+              1086.317343,
+              1086.317343
+            ],
             type: 'line',
             smooth: true,
             lineStyle: { color: '#3b5bdb', width: 2 },
@@ -304,7 +328,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          data: Array.from({ length: 24 }, (_, i) => `${i + 1}:00`), // 生成 24 个时间点
           axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
           axisLabel: { color: '#252525', fontSize: 12 }
         },
@@ -315,7 +339,7 @@ export default {
         },
         series: [
           {
-            name: '机组A',
+            name: '基载螺杆式',
             type: 'bar',
             stack: '机组',
             itemStyle: {
@@ -326,10 +350,10 @@ export default {
               shadowOffsetX: 2,
               shadowOffsetY: 2
             },
-            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
+            data: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0] // 生成 24 个随机数据点
           },
           {
-            name: '机组B',
+            name: '基载离心式',
             type: 'bar',
             stack: '机组',
             itemStyle: {
@@ -340,10 +364,10 @@ export default {
               shadowOffsetX: 2,
               shadowOffsetY: 2
             },
-            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]// 生成 24 个随机数据点
           },
           {
-            name: '机组C',
+            name: '双工况离心式',
             type: 'bar',
             stack: '机组',
             itemStyle: {
@@ -354,7 +378,7 @@ export default {
               shadowOffsetX: 2,
               shadowOffsetY: 2
             },
-            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 2)) // 生成 24 个随机数据点
+            data: [4, 4, 4, 4, 4, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4] // 生成 24 个随机数据点
           }
         ],
         grid: { left: '10%', right: '10%', bottom: '13%', top: '25%', containLabel: true }, // 调整 top 值
@@ -391,7 +415,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          data: Array.from({ length: 24 }, (_, i) => `${i + 1}:00`), // 生成 24 个时间点
           axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
           axisLabel: { color: '#252525', fontSize: 12 }
         },
@@ -402,7 +426,32 @@ export default {
         },
         series: [
           {
-            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 100)), // 生成 24 个随机数据点
+            data: [
+              225.9540074,
+              523.0844415,
+              679.4093579,
+              679.4093579,
+              677.3293579,
+              545.966,
+              48.01,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1.099781607,
+              0,
+              0,
+              55.54795598,
+              105.2654122,
+              96.01276384,
+              75.44040184,
+              35.64823679,
+              0,
+              225.9540074,
+              225.9540074
+            ],
             type: 'line',
             smooth: true,
             lineStyle: { color: '#91a7ff', width: 2 },
@@ -437,7 +486,7 @@ export default {
         },
         xAxis: {
           type: 'category',
-          data: Array.from({ length: 24 }, (_, i) => `${i}:00`), // 生成 24 个时间点
+          data: Array.from({ length: 24 }, (_, i) => `${i + 1}:00`), // 生成 24 个时间点
           axisLine: { lineStyle: { color: 'rgba(255, 255, 255, 0.3)' } },
           axisLabel: { color: '#252525', fontSize: 12 }
         },
@@ -448,7 +497,32 @@ export default {
         },
         series: [
           {
-            data: Array.from({ length: 24 }, () => Math.floor(Math.random() * 200)), // 生成 24 个随机数据点
+            data: [
+              11382.6098,
+              20976.12726,
+              33615.15113,
+              46241.53598,
+              58855.29444,
+              62594.43915,
+              63481.34471,
+              58415.39177,
+              54328.76738,
+              49174.52495,
+              44751.28137,
+              40144.22354,
+              35347.59332,
+              30200.24573,
+              24386.29301,
+              18575.01688,
+              12756.01088,
+              8291.680858,
+              4560.144744,
+              1858.699554,
+              0,
+              0,
+              3798,
+              7592.202
+            ],
             type: 'line',
             smooth: true,
             lineStyle: { color: '#a9a3ca', width: 2 },

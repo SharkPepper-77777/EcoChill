@@ -41,7 +41,7 @@
         </div>
         <div class="param-table">
           <!-- 新增：双工况机组的模式切换按钮 -->
-          <div v-if="currentUnit.type === '双工况'" class="mode-switch-container">
+          <div v-if="currentUnit.type === '双工况离心式'" class="mode-switch-container">
             <div class="mode-switch">
               <button :class="{ active: currentMode === 'cooling' }" @click="switchMode('cooling')">
                 制冷模式
@@ -120,7 +120,7 @@ export default {
     },
     currentUnitParams() {
       let params = [];
-      if (this.currentUnit.type === '双工况') {
+      if (this.currentUnit.type === '双工况离心式') {
         if (this.currentMode === 'cooling') {
           params = this.currentUnit.coolingModeParams;
         } else {
@@ -211,9 +211,9 @@ export default {
     ...mapActions(['fetchScheduledUnits', 'getUnitById']),
     getCardClass(type) {
       const classMap = {
-        '螺杆': 'card-screw',
-        '双工况': 'card-dual-mode',
-        '基载': 'card-base-load'
+        '基载螺杆式': 'card-screw',
+        '双工况离心式': 'card-dual-mode',
+        '基载离心式': 'card-base-load'
       };
       return classMap[type] || '';
     },
@@ -230,9 +230,9 @@ export default {
         } else {
           // 新增部分：根据机组类型设置图片 URL
           const imageMap = {
-            '螺杆': require('@/assets/luoganshi.png'),
-            '双工况': require('@/assets/lixinshi.png'),
-            '基载': require('@/assets/lixinshi.png')
+            '基载螺杆式': require('@/assets/luoganshi.png'),
+            '双工况离心式': require('@/assets/lixinshi.png'),
+            '基载离心式': require('@/assets/lixinshi.png')
           };
           unit.imageUrl = imageMap[unit.type] || '';
 

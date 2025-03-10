@@ -57,7 +57,7 @@
 <script>
 import { ref, onMounted } from 'vue';
 import { useStore } from 'vuex';
-
+import { useRouter } from 'vue-router';
 export default {
   setup() {
     const username = ref('');
@@ -65,7 +65,7 @@ export default {
     const rememberPassword = ref(false);
     const errorMessage = ref('');
     const store = useStore();
-
+    const router = useRouter();
     const handleLogin = async () => {
       try {
         const result = await store.dispatch('login', { username: username.value, password: password.value });
@@ -75,7 +75,7 @@ export default {
           // 假设使用vue-router进行跳转，示例如下
           // import { useRouter } from 'vue-router';
           // const router = useRouter();
-          // router.push('/');
+          router.push('/');
         } else {
           errorMessage.value = '用户名或密码错误';
         }
