@@ -1,4 +1,100 @@
 <template>
+  <div class="building-settings">
+    <!-- 上方天气展示区域 -->
+    <div class="weather-display">
+      <!-- 第一个条件必须是 v-if -->
+      <div v-if="!getSelectedCity" class="weather-tip">请搜索地点获取天气信息</div>
+      <div v-else-if="getSelectedCityWeather" class="weather-data">
+        <span class="weather-value">
+          <i class="fa-solid fa-location-dot"></i> {{ getSelectedCity.name }} ({{ getSelectedCity.adm1 }})
+        </span>
+        <span class="weather-value">
+          <span class="weather-icon">
+            <i :class="'qi-' + getSelectedCityWeather.result.realtime.icon"></i>
+          </span>
+          {{ getSelectedCityWeather.result.realtime.text }}
+        </span>
+        <span class="weather-value">
+          <i class="fa-solid fa-temperature-high"></i>
+          <span>气温：{{ getSelectedCityWeather.result.realtime.temp }}℃</span>
+        </span>
+        <span class="weather-value">
+          <i class="fa-solid fa-wind"></i>
+          <span>风速：{{ getSelectedCityWeather.result.realtime.windSpeed }}m/s</span>
+        </span>
+        <span class="weather-value">
+          <i class="fa-solid fa-cloud"></i>
+          <span>云量：{{ getSelectedCityWeather.result.realtime.clouds }}%</span>
+        </span>
+        <span class="weather-value">
+          <i class="fa-solid fa-eye"></i>
+          <span>能见度：{{ getSelectedCityWeather.result.realtime.vis }}米</span>
+        </span>
+      </div>
+      <!-- 合并条件：已有城市但无天气数据 -->
+      <div v-else class="weather-tip">
+        请搜索地点获取天气信息
+      </div>
+    </div>
+    <div class="building-header">
+      <div class="param-row">
+        <!-- 下方左边：上传按钮 -->
+        <div class="upload-button">
+          <input type="file" id="historyLoadFile" @change="handleFileUpload" accept=".xlsx, .xls"
+            class="hidden-file-input" />
+          <label for="historyLoadFile" class="custom-upload-btn">上传历史负荷文件</label>
+        </div>
+        <!-- 下方右边：搜索框 -->
+        <div class="search-container">
+          <div class="search-box">
+            <input type="text" placeholder="检索地点（如：北京、上海）" v-model="searchKeyword" @input="debouncedSearch"
+              class="search-input" />
+            <ul v-if="getSearchLocationsResults.length > 0" class="search-results">
+              <li v-for="(location, index) in getSearchLocationsResults" :key="index" @click="selectLocation(location)">
+                <span v-if="location.adm1">
+                  {{ location.name }} ({{ location.adm1 }})
+                </span>
+                <span v-else>
+                  {{ location.name }} (未知地区)
+                </span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- 光伏发电装置参数设置框 -->
+  <div class="solar-settings">
+    <div class="solar-header">
+      <h3>光伏发电装置设置</h3>
+      <div class="param-row">
+        <div class="param-item">
+          <label for="solar-tilt-angle">采光面倾角:</label>
+          <input id="solar-tilt-angle" type="number" v-model="tempSolarParams.solarTiltAngle"
+            @input="handleSolarParamChange" />
+        </div>
+        <div class="param-item">
+          <label for="solar-panel-area">太阳能板可用面积:</label>
+          <input id="solar-panel-area" type="number" v-model="tempSolarParams.solarPanelArea"
+            @input="handleSolarParamChange" />
+        </div>
+        <div class="param-item">
+          <label for="solar-efficiency">发电效率:</label>
+          <input id="solar-efficiency" type="number" step="0.001" v-model="tempSolarParams.solarEfficiency"
+            @input="handleSolarParamChange" />
+        </div>
+        <div class="param-item">
+          <label for="solar-misc-loss">杂项损失:</label>
+          <input id="solar-misc-loss" type="number" step="0.001" v-model="tempSolarParams.solarMiscLoss"
+            @input="handleSolarParamChange" />
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- 储能装置参数设置框 -->
   <div class="storage-settings">
     <div class="storage-header">
@@ -102,7 +198,9 @@
     <div v-for="i in placeholderCount" :key="`placeholder-${i}`" class="unit-card placeholder"></div>
   </div>
   <!-- 开始调度预测按钮 -->
-  <button class="start-scheduling-button" @click="startSchedulingPrediction">开始调度预测</button>
+  <button class="start-scheduling-button" @click="startSchedulingPrediction" :disabled="getIsScheduling">
+    {{ getIsScheduling ? '调度预测中...' : '开始调度预测' }}
+  </button>
   <!-- 编辑弹窗 -->
   <div v-if="showEditModalId" class="edit-modal">
     <div class="edit-modal-content">
@@ -225,16 +323,23 @@
     </div>
   </div>
 </template>
+
 <script>
 import { mapGetters, mapActions } from 'vuex';
-
+import { debounce } from 'lodash'; // 需要安装 lodash：npm install lodash
 export default {
+  name: 'SchedulingPredictionView',
   data() {
     return {
       selectedUnitType: '基载螺杆式', // 默认选择螺杆机组
       showModal: false, // 控制添加弹窗显示
       showEditModalId: null, // 控制编辑弹窗显示，存储当前编辑机组的id
       editUnitType: null, // 存储当前编辑机组的类型
+      //地点参数
+      searchKeyword: '', // 搜索关键词
+      isScheduling: false, // 调度预测状态
+      schedulingTimeLeft: 0,// 调度预测倒计时剩余时间
+
       // 用于存储编辑中的机组参数，初始化为空对象
       editUnitParams: {},
       editStorageParams: {
@@ -274,12 +379,27 @@ export default {
         coolingLossCoefficient: 0.001,
         maxCoolingCapacity: 0
       },
+      tempSolarParams: {
+        solarTiltAngle: 0,
+        solarPanelArea: 0,
+        solarEfficiency: 0,
+        solarMiscLoss: 0
+      },
+
       nextUnitId: 1, // 用于生成机组编号
       isLoading: false // 新增：用于显示加载状态
     };
   },
   computed: {
-    ...mapGetters(['getTempUnits', 'getTempStorageParams']),
+    ...mapGetters(['getTempUnits',
+      'getTempStorageParams',
+      'getSearchLocationsResults',
+      'getSelectedCityWeather',
+      'getIsWeatherLoading',
+      'getSelectedCity',
+      'getIsScheduling',
+      'getSchedulingTimeLeft',
+    ]),
     units() {
       return this.getTempUnits;
     },
@@ -298,8 +418,44 @@ export default {
       'fetchTempStorageParams',
       'saveTempStorageParams',
       'startScheduling',
-      'saveStorageParams' // 新增：用于将临时数据保存到正式数据
+      'saveStorageParams',
+      'searchLocations',
+      'fetchWeather'
     ]),
+    // 新增：获取当前城市并触发天气请求
+    async fetchCurrentLocationAndWeather() {
+      const currentCity = await this.$store.dispatch('fetchCurrentLocation');
+      if (currentCity) {
+        // 自动触发天气获取
+        await this.fetchWeather();
+      }
+    },
+    // 新增：防抖处理搜索输入
+    debouncedSearch: debounce(function () {
+      if (this.searchKeyword.trim()) {
+        this.searchLocations(this.searchKeyword); // 触发 Vuex 搜索
+      } else {
+        // 清空搜索结果（通过 Vuex 自动处理，此处无需操作）
+      }
+    }, 300), // 300ms 防抖间隔
+    // 新增：文件上传处理
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        console.log('上传的文件:', file);
+        // 这里添加文件上传逻辑（如调用后端接口）
+        // this.uploadFileToServer(file); // 自定义上传方法
+      }
+    },
+    // 新增：选择地点（可选：如需获取天气等后续操作）
+    selectLocation(location) {
+      this.searchKeyword = location.name; // 填充搜索框
+      this.$store.commit('SET_SELECTED_CITY', location);
+      // 调用 Vuex 的天气获取 action
+      this.fetchWeather();
+      console.log('选中地点:', location);
+    },
+
     // 保存机组
     async saveUnit() {
       const unitData = {
@@ -396,7 +552,7 @@ export default {
         await this.startScheduling();
         console.log('调度预测已启动');
         await this.fetchTempUnits();
-        alert('调度预测已启动，请切换到相应界面查看结果');
+        // alert('调度预测已启动');
       } catch (error) {
         console.error('启动调度预测失败:', error);
         alert('启动调度预测失败，请检查网络或联系管理员');
@@ -414,7 +570,12 @@ export default {
         });
     }
   },
+  handleSolarParamChange() {
+    // 这里可以添加保存参数到后端的逻辑，和 handleStorageParamChange 类似
+    console.log('光伏发电装置参数变化，当前参数:', this.tempSolarParams);
+  },
   created() {
+    this.fetchCurrentLocationAndWeather();
     this.isLoading = true;
     this.fetchTempUnits().then(() => {
       this.fetchTempStorageParams().then(() => {
@@ -926,5 +1087,193 @@ body {
   height: 40px;
   color: white;
   /* 文字颜色设置为白色，确保在不同背景色下都能清晰显示 */
+}
+
+/* 光伏发电装置参数设置框 */
+.solar-settings {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 97%;
+  height: 70px;
+  /* 固定高度 */
+}
+
+.solar-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.solar-settings h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  color: #333333;
+}
+
+.solar-settings .param-row {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+
+.solar-settings .param-item {
+  flex: 1;
+  margin: 0 10px;
+}
+
+.solar-settings label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #555;
+}
+
+.solar-settings input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  height: 40px;
+  /* 固定高度 */
+}
+
+/* 建筑参数设置框（新增样式） */
+/* 上方天气展示区域样式 */
+.weather-display {
+  padding: 15px;
+  margin-bottom: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.weather-data span {
+  margin-right: 20px;
+  font-size: 14px;
+  color: #333;
+}
+
+.weather-loading,
+.weather-tip {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+}
+
+/* 建筑参数设置区域样式 */
+.building-settings {
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.building-header h3 {
+  color: #666;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* 下方布局样式，包含上传按钮和搜索框 */
+.param-row {
+  display: flex;
+  align-items: center;
+  /* 垂直居中 */
+  gap: 20px;
+  /* 按钮与搜索框间距 */
+}
+
+.upload-button {
+  flex: 0 0 auto;
+  /* 上传按钮宽度自适应内容 */
+}
+
+.hidden-file-input {
+  display: none;
+  /* 隐藏原生文件选择按钮 */
+}
+
+.upload-button label {
+  background: #0088cc;
+  /* 设置背景色 */
+  color: white;
+  /* 设置文字颜色 */
+  padding: 10px 20px;
+  /* 设置内边距 */
+  border: none;
+  /* 去掉边框 */
+  border-radius: 4px;
+  /* 设置圆角 */
+  cursor: pointer;
+  /* 鼠标指针样式为指针，提示可点击 */
+  display: inline-block;
+  /* 确保按钮正常显示 */
+}
+
+/* 搜索框区域样式 */
+.search-container {
+  flex: 1;
+  /* 搜索框占满剩余空间 */
+}
+
+.search-box {
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.search-results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  width: 68%;
+}
+
+.search-results li {
+  padding: 8px 16px;
+  cursor: pointer;
+
+}
+
+.search-results li:hover {
+  background-color: #f5f5f5;
+}
+
+/* 参数显示区域样式 */
+.param-display {
+  background: white;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+}
+
+.param-item {
+  margin-bottom: 5px;
+}
+
+.weather-icon {
+  font-size: 1.4em;
+  /* 增大图标尺寸，匹配文字高度 */
 }
 </style>

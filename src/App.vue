@@ -19,8 +19,10 @@ export default {
   computed: {
     // 从 Vuex Store 获取登录状态
     isLoggedIn() {
-      return this.$store.state.isLoggedIn;
-      // return true;
+      //需要登录
+      //return this.$store.state.isLoggedIn;
+      //不用登录
+      return true;
     },
   },
 };

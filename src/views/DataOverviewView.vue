@@ -25,16 +25,45 @@
           <!-- 时间框 -->
           <div class="data-time">
             <span class="data-label">数据生成时间</span>
-            <span class="data-value">2023-3-11 14:30</span>
+            <span class="data-value">2023-3-11</span>
           </div>
           <!-- 机组总数框 -->
           <div class="unit-count">
             <span class="data-label">机组总数</span>
             <span class="data-value">7</span>
           </div>
+
+
+
         </div>
         <!-- 饼图框 -->
         <div ref="pieChart" class="pie-chart"></div>
+      </div>
+      <!-- 天气框 -->
+      <div class="weather-box" v-if="currentWeather && currentWeather.result">
+
+        <span class="weather-value">
+          <span class="weather-icon">
+            <i :class="'qi-' + currentWeather.result.realtime.icon"></i>
+          </span> {{ currentWeather.result.realtime.text }}
+        </span>
+        <span class="weather-value">
+          <i class="fa-solid fa-temperature-high"> </i> {{ currentWeather.result.realtime.temp }}℃
+        </span>
+        <span class="weather-value">
+          <i class="fa-solid fa-eye"></i> {{ currentWeather.result.realtime.vis }}m
+        </span>
+        <span class="weather-value">
+          <i class="fa-solid fa-wind"></i>{{ currentWeather.result.realtime.windSpeed }}m/s
+        </span>
+        <span class="weather-value">
+          <i class="fa-solid fa-cloud"></i> {{ currentWeather.result.realtime.clouds }}%
+        </span>
+      </div>
+
+      <div class="weather-box" v-else>
+
+        <span class="weather-value">天气获取中...</span>
       </div>
     </div>
     <!-- 右侧区域：24H 制冷折线图 -->
@@ -58,17 +87,38 @@
 
 <script>
 import * as echarts from 'echarts';
+import { mapState, mapActions } from 'vuex';
 
 export default {
   name: 'DataOverviewView',
+  computed: {
+    // 从 Store 中获取天气数据和搜索结果
+    ...mapState({
+      currentWeather: 'selectedCityWeather', // 对应 Store 中的 selectedCityWeather 状态
+      searchLocations: 'searchLocationsResults'
+    })
+  },
   mounted() {
     this.initCharts();
     window.addEventListener('resize', this.resizeCharts);
+    // 组件挂载后，自动获取当前搜索城市的天气（假设搜索结果的第一个为当前城市）
+    this.fetchWeather(); // 调用 Store 中的 action
+
   },
   beforeUnmount() {
     window.removeEventListener('resize', this.resizeCharts);
   },
   methods: {
+    ...mapActions(['fetchWeather']), // 映射 Store 中的天气获取 action
+    // 映射天气图标（需根据后端返回的天气代码调整）
+    getWeatherIcon(iconCode) {
+      if (iconCode === 'N/A') {
+        return 'N/A';
+      }
+      const qwiClass = `qwi-${iconCode}`;
+      console.log('图标代码:', iconCode, '对应的类名:', qwiClass); // 添加这行用于调试
+      return `<i class="${qwiClass}"></i>`;
+    },
     initCharts() {
       this.pieChart = echarts.init(this.$refs.pieChart);
       this.coolingLineChart = echarts.init(this.$refs.coolingLineChart);
@@ -83,6 +133,7 @@ export default {
       this.initEquipmentBarChart();
       this.initCostLineChart();
       this.initIceLineChart();
+
     },
     resizeCharts() {
       this.pieChart.resize();
@@ -547,6 +598,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
+@import url('https://cdn.jsdelivr.net/npm/qweather-icons@1.6.0/font/qweather-icons.css');
+
 * {
   box-sizing: border-box;
 }
@@ -761,5 +814,92 @@ body {
       background: linear-gradient(135deg, #ffffff, #ffffff); // 第四个框的渐变颜色
     }
   }
+}
+
+/* 新增：天气框样式（与其他数据框一致） */
+.weather-box {
+  background: white;
+  padding: 10px 20px;
+  border-radius: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.3s ease;
+  align-items: center;
+  gap: 10px;
+  justify-items: center;
+  /* 图标与文字间距 */
+  height: 10%;
+  width: 95%;
+  /* 与机组总数框高度一致 */
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  /* 平均分成 5 列，每列占 1fr，即 20% */
+}
+
+.weather-icon {
+  font-size: 1.4em;
+  /* 增大图标尺寸，匹配文字高度 */
+}
+
+.box-content {
+  display: flex;
+  flex-direction: wrap;
+  align-items: center;
+  /* 文字左对齐 */
+
+}
+
+.data-label {
+  font-size: 0.7em;
+  color: #0061bd;
+  font-weight: bold;
+}
+
+.data-value {
+  font-size: 1em;
+  font-weight: bold;
+  color: #252525;
+}
+
+.weather-value {
+  font-size: 1em;
+  font-weight: bold;
+  color: #252525;
+  margin: 0;
+  justify-content: center;
+  /* 再次确保水平居中 */
+  line-height: 20px;
+  /* 这里的高度根据你的实际元素高度调整 */
+}
+
+/* 悬停效果 */
+.weather-box:hover {
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+/* 适配原有数据框的响应式布局 */
+.left-container {
+  width: 40%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* 调整子元素间距 */
+}
+
+.data-time,
+.unit-count {
+  width: 100%;
+  /* 占满容器宽度 */
+  margin: 0;
+  /* 移除默认边距 */
+}
+
+.weather-icon {
+
+  font-size: 1.4em;
+  /* 增大图标尺寸，匹配文字高度 */
+  display: inline-block;
+  /* 确保图标正确显示 */
+  vertical-align: middle;
+  /* 垂直居中对齐 */
 }
 </style>

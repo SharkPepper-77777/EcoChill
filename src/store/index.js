@@ -4,7 +4,7 @@ import axios from 'axios';
 // 提取基础 URL
 const baseUrl = 'http://localhost:3001';
 
-// 构建 API 端点对象
+// 构建 API 端点对象（补充天气 API 端点）
 const apiEndpoints = {
   login: `${baseUrl}/login`,
   register: `${baseUrl}/register`,
@@ -13,8 +13,11 @@ const apiEndpoints = {
   storage: `${baseUrl}/storage`,
   tempStorage: `${baseUrl}/temp_storage`, // 新增临时储能设备参数API端点
   startScheduling: `${baseUrl}/start_scheduling`,
-  unitById: '${baseUrl}/units/:unit_id',
-  unitsTotal: `${baseUrl}/units/total` // 新增获取机组数据总和的端点
+  unitById: `${baseUrl}/units/:unit_id`,
+  unitsTotal: `${baseUrl}/units/total`, // 新增获取机组数据总和的端点
+  searchLocations: `${baseUrl}/search-cities`, // 指向后端的搜索接口（与后端代码对应）
+  weather: `${baseUrl}/get-weather`, // 新增天气 API 端点
+  currentLocation: `${baseUrl}/current-location` // 新增获取当前城市的 API 端点
 };
 
 export default createStore({
@@ -36,7 +39,14 @@ export default createStore({
       maxIceStorage: 0,
       coolingLossCoefficient: 0.001,
       maxCoolingCapacity: 0
-    } // 新增临时储能设备参数状态
+    }, // 新增临时储能设备参数状态
+    searchLocationsResults: [], // 搜索到的地点列表（包含 areacode、name、country）
+    selectedCity: null, // 新增：当前选中的城市
+    selectedCityWeather: null, // 新增：选中城市的天气数据
+    isWeatherLoading: false, // 新增：天气加载状态
+    weatherError: null, // 新增：天气请求错误信息
+    isScheduling: false, // 调度预测状态
+    schedulingTimeLeft: 0 // 调度预测倒计时剩余时间
   },
   getters: {
     getIsLoggedIn: (state) => state.isLoggedIn,
@@ -44,9 +54,16 @@ export default createStore({
     getTempUnits: (state) => state.tempUnits,
     getScheduledUnits: (state) => state.scheduledUnits,
     getStorageParams: (state) => state.storageParams,
-    getTempStorageParams: (state) => state.tempStorageParams,// 新增获取临时储能设备参数的getter
+    getTempStorageParams: (state) => state.tempStorageParams, // 新增获取临时储能设备参数的getter
     getSelectedUnit: (state) => state.selectedUnit,
-    getUnitsTotalData: (state) => state.unitsTotalData
+    getUnitsTotalData: (state) => state.unitsTotalData,
+    getSearchLocationsResults: (state) => state.searchLocationsResults,
+    getSelectedCity: (state) => state.selectedCity, // 新增获取当前选中城市的 getter
+    getSelectedCityWeather: (state) => state.selectedCityWeather, // 新增获取天气数据的getter
+    getIsWeatherLoading: (state) => state.isWeatherLoading, // 新增获取天气加载状态的getter
+    getWeatherError: (state) => state.weatherError, // 新增获取天气请求错误信息的 getter
+    getIsScheduling: (state) => state.isScheduling,
+    getSchedulingTimeLeft: (state) => state.schedulingTimeLeft
   },
   mutations: {
     login(state, user) {
@@ -103,6 +120,43 @@ export default createStore({
     setUnitsTotalData(state, data) {
       state.unitsTotalData = data;
     },
+    setSearchLocationsResults(state, results) {
+      console.log('原始 results 数据:', results); // 检查每个 location 是否有 path 字段
+      state.searchLocationsResults = results.map(location => ({
+        areacode: location.areacode,
+        name: location.name,
+        adm1: location.adm1,
+      }));
+      console.log('处理后 searchLocationsResults:', state.searchLocationsResults); // 检查 path 是否正确映射
+    },
+    // 新增天气相关的mutation
+    SET_SELECTED_CITY(state, city) {
+      state.selectedCity = city;
+    },
+    SET_WEATHER_DATA(state, weatherData) {
+      state.selectedCityWeather = weatherData;
+    },
+    SET_WEATHER_LOADING(state, isLoading) {
+      state.isWeatherLoading = isLoading;
+    },
+    SET_WEATHER_ERROR(state, error) {
+      state.weatherError = error;
+    },
+    START_SCHEDULING(state) {
+      state.isScheduling = true;
+      state.schedulingTimeLeft = 30;
+    },
+    UPDATE_SCHEDULING_TIME(state) {
+      if (state.schedulingTimeLeft > 0) {
+        state.schedulingTimeLeft--;
+      } else {
+        state.isScheduling = false;
+      }
+    },
+    STOP_SCHEDULING(state) {
+      state.isScheduling = false;
+      state.schedulingTimeLeft = 0;
+    }
   },
   actions: {
     async login({ commit }, { username, password }) {
@@ -220,6 +274,14 @@ export default createStore({
       }
     },
     async startScheduling({ commit, getters }) {
+      commit('START_SCHEDULING');
+      const countdownInterval = setInterval(() => {
+        commit('UPDATE_SCHEDULING_TIME');
+        if (!getters.getIsScheduling) {
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+
       try {
         const response = await axios.post(apiEndpoints.startScheduling);
         if (response.status === 200) {
@@ -234,6 +296,7 @@ export default createStore({
         }
       } catch (error) {
         console.error('开始调度预测时出现错误：', error);
+        commit('STOP_SCHEDULING');
       }
     },
     async fetchTempStorageParams({ commit }) {
@@ -272,6 +335,66 @@ export default createStore({
         console.error('获取机组数据总和时出现错误：', error);
       }
     },
+    async searchLocations({ commit }, keyword) {
+      try {
+        // 调用后端的搜索接口（需与后端 `/search-cities` 接口对应）
+        const response = await axios.get(apiEndpoints.searchLocations, {
+          params: {
+            keyword, // 传递搜索关键字（后端会转为第三方 API 的 location 参数）
+            items: 20, // 返回最多 20 条结果（与后端逻辑一致）
+            area: 'china', // 搜索范围（可改为 'global' 搜索全球）
+          },
+        });
+
+        // 后端应返回 { status: 200, cities: [...] }，提取 cities 数组
+        if (response.data.status === 200) {
+          commit('setSearchLocationsResults', response.data.cities);
+        } else {
+          // 后端返回错误时清空结果
+          commit('setSearchLocationsResults', []);
+          console.error('搜索失败:', response.data.message);
+        }
+      } catch (error) {
+        // 网络错误时清空结果
+        commit('setSearchLocationsResults', []);
+        console.error('网络请求失败:', error.message);
+      }
+    },
+    // 新增获取当前城市的 action
+    async fetchCurrentLocation({ commit }) {
+      try {
+        const response = await axios.get(apiEndpoints.currentLocation);
+        if (response.data) {
+          commit('SET_SELECTED_CITY', response.data);
+          return response.data;
+        }
+        return null;
+      } catch (error) {
+        console.error('获取当前城市信息失败:', error);
+        return null;
+      }
+    },
+    // 新增天气相关的action
+    async fetchWeather({ commit, state }) {
+      if (!state.selectedCity) {
+        commit('SET_WEATHER_ERROR', '请先选择城市');
+        return;
+      }
+      commit('SET_WEATHER_LOADING', true);
+      commit('SET_WEATHER_ERROR', null); // 清除旧错误
+      try {
+        const params = {
+          areacode: state.selectedCity.areacode
+        };
+        const response = await axios.get(apiEndpoints.weather, { params });
+        commit('SET_WEATHER_DATA', response.data);
+      } catch (error) {
+        console.error('天气请求失败:', error);
+        commit('SET_WEATHER_ERROR', '获取天气失败，请检查网络或重试');
+      } finally {
+        commit('SET_WEATHER_LOADING', false);
+      }
+    }
   },
   modules: {}
-});
+});    

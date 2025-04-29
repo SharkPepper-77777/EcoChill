@@ -113,6 +113,7 @@ import * as echarts from 'echarts';
 import axios from 'axios';
 
 export default {
+  name: 'UnitCenterView',
   computed: {
     ...mapGetters(['getScheduledUnits', 'getSelectedUnit']),
     allUnits() {

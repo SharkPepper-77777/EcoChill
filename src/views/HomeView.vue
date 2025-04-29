@@ -10,6 +10,10 @@
 
       <!-- 工作区域 -->
       <div class="workspace">
+        <!-- 调度预测覆盖层 -->
+        <div v-if="getIsScheduling" class="scheduling-overlay" :key="getIsScheduling">
+          调度预测中...
+        </div>
         <component :is="activeComponent"></component>
       </div>
     </div>
@@ -17,6 +21,8 @@
 </template>
 
 <script>
+import { mapGetters } from 'vuex';
+import { nextTick } from 'vue';
 import AppSidebar from '@/components/Sidebar.vue';
 import AppTopbar from '@/components/Topbar.vue';
 import SchedulingPredictionView from '@/views/SchedulingPredictionView.vue';
@@ -32,38 +38,65 @@ export default {
     SchedulingPredictionView,
     UnitCenterView,
     DataOverviewView,
-    HistoricalReportsView,
+    HistoricalReportsView
   },
   data() {
     return {
-      activeMenu: 'schedulingPrediction', // 当前选中的菜单项
+      activeMenu: 'schedulingPrediction' // 当前选中的菜单项
     };
   },
   computed: {
+    ...mapGetters(['getIsScheduling']),
+    getIsScheduling() {
+      const status = this.$store.getters.getIsScheduling;
+      return status;
+    },
     // 当前选中的菜单项标签
     activeMenuLabel() {
       const labels = {
         schedulingPrediction: '调度预测',
         unitCenter: '机组中心',
         dataOverview: '数据总览',
-        historicalReports: '历史报表',
+        historicalReports: '历史报表'
       };
       return labels[this.activeMenu] || '';
     },
     // 当前选中的组件
     activeComponent() {
       const components = {
-        schedulingPrediction: 'SchedulingPredictionView',
-        unitCenter: 'UnitCenterView',
-        dataOverview: 'DataOverviewView',
-        historicalReports: 'HistoricalReportsView',
+        schedulingPrediction: SchedulingPredictionView,
+        unitCenter: UnitCenterView,
+        dataOverview: DataOverviewView,
+        historicalReports: HistoricalReportsView
       };
       return components[this.activeMenu] || null;
     },
     // 用户名
     username() {
       return this.$store.state.user?.username || '用户';
+    }
+  },
+  mounted() {
+    if (this.getIsScheduling) {
+      this.adjustOverlayHeight();
+    }
+  },
+  watch: {
+    getIsScheduling(newVal) {
+      if (newVal) {
+        this.adjustOverlayHeight();
+      }
     },
+    activeComponent() {
+      let viewName = this.activeComponent?.name;
+      if (viewName === undefined) {
+        viewName = 'SchedulingPredictionView';
+      }
+      this.$nextTick(() => {
+        this.$forceUpdate();
+        this.adjustOverlayHeight(viewName);
+      });
+    }
   },
   methods: {
     // 处理菜单切换
@@ -75,7 +108,27 @@ export default {
       this.$store.dispatch('logout');
       this.$router.push('/login');
     },
-  },
+    adjustOverlayHeight(viewName) {
+      nextTick(() => {
+        const workspace = document.querySelector('.workspace');
+        if (workspace) {
+          const overlay = document.querySelector('.scheduling-overlay');
+          if (overlay) {
+            const scrollHeight = workspace.scrollHeight;
+            const clientHeight = workspace.clientHeight;
+            let overlayHeight;
+            if (viewName === 'SchedulingPredictionView' || viewName == undefined) {
+              overlayHeight = scrollHeight;
+            } else {
+              overlayHeight = clientHeight;
+            }
+            overlay.style.height = `${overlayHeight}px`;
+            console.log(`${viewName} 界面，设置覆盖层高度为:`, overlayHeight);
+          }
+        }
+      });
+    }
+  }
 };
 </script>
 
@@ -83,10 +136,7 @@ export default {
 .home-container {
   display: flex;
   height: 100vh;
-  /* 确保填满整个视口高度 */
-  // background-color: #0a192f;
   margin: 0;
-  /* 移除默认的外边距 */
 }
 
 .main-content {
@@ -100,21 +150,27 @@ export default {
   padding: 20px;
   background-color: #ecf5fc;
   border-radius: 8px;
-  // box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin: 20px;
   margin-top: 20px;
-  /* 移除顶部外边距 */
   overflow-y: scroll;
- // background-image: url('@/assets/workspace-bg.jpg'); // 添加背景图片
-  background-size: cover; // 使背景图片覆盖整个容器
-  background-position: center; // 背景图片居中
-  background-repeat: no-repeat; // 不重复背景图片
+  position: relative;
 }
 
 .workspace::-webkit-scrollbar {
   width: 0px;
-  /* 隐藏横向滚动条 */
   height: 0px;
-  /* 隐藏纵向滚动条 */
+}
+
+.scheduling-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
+  z-index: 999;
 }
 </style>
