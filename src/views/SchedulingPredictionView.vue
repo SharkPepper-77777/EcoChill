@@ -4,6 +4,13 @@
     <div class="weather-display">
       <!-- 第一个条件必须是 v-if -->
       <div v-if="!getSelectedCity" class="weather-tip">请搜索地点获取天气信息</div>
+      <!-- 有选中城市，但天气数据加载中 -->
+      <div v-else-if="getIsWeatherLoading" class="weather-loading">
+        <span class="weather-value">
+          <i class="fa-solid fa-location-dot"></i> {{ getSelectedCity.name }} ({{ getSelectedCity.adm1 }})
+        </span>
+        <span class="weather-value">天气信息加载中...</span>
+      </div>
       <div v-else-if="getSelectedCityWeather" class="weather-data">
         <span class="weather-value">
           <i class="fa-solid fa-location-dot"></i> {{ getSelectedCity.name }} ({{ getSelectedCity.adm1 }})
@@ -420,7 +427,9 @@ export default {
       'startScheduling',
       'saveStorageParams',
       'searchLocations',
-      'fetchWeather'
+      'fetchWeather',
+      'clearSearchLocationsResults',
+      'setCurrentLocation',
     ]),
     // 新增：获取当前城市并触发天气请求
     async fetchCurrentLocationAndWeather() {
@@ -448,12 +457,16 @@ export default {
       }
     },
     // 新增：选择地点（可选：如需获取天气等后续操作）
-    selectLocation(location) {
+    async selectLocation(location) {
       this.searchKeyword = location.name; // 填充搜索框
+      console.log('选中地点:', location);
       this.$store.commit('SET_SELECTED_CITY', location);
+      this.$store.commit('SET_WEATHER_LOADING', true); // 设置加载状态为 true
+      await this.setCurrentLocation(location);
       // 调用 Vuex 的天气获取 action
       this.fetchWeather();
-      console.log('选中地点:', location);
+      this.searchKeyword = '';
+      this.$store.commit('clearSearchLocationsResults'); // 调用清空搜索结果的 mutations
     },
 
     // 保存机组

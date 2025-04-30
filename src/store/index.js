@@ -17,7 +17,8 @@ const apiEndpoints = {
   unitsTotal: `${baseUrl}/units/total`, // 新增获取机组数据总和的端点
   searchLocations: `${baseUrl}/search-cities`, // 指向后端的搜索接口（与后端代码对应）
   weather: `${baseUrl}/get-weather`, // 新增天气 API 端点
-  currentLocation: `${baseUrl}/current-location` // 新增获取当前城市的 API 端点
+  currentLocation: `${baseUrl}/current-location`, // 新增获取当前城市的 API 端点
+  setCurrentLocation: `${baseUrl}/set-current-location` // 新增设置当前位置的 API 端点
 };
 
 export default createStore({
@@ -126,6 +127,8 @@ export default createStore({
         areacode: location.areacode,
         name: location.name,
         adm1: location.adm1,
+        lat: location.lat,
+        lon: location.lon,
       }));
       console.log('处理后 searchLocationsResults:', state.searchLocationsResults); // 检查 path 是否正确映射
     },
@@ -156,6 +159,10 @@ export default createStore({
     STOP_SCHEDULING(state) {
       state.isScheduling = false;
       state.schedulingTimeLeft = 0;
+    },
+    // 新增清空搜索结果数组的 mutations
+    clearSearchLocationsResults(state) {
+      state.searchLocationsResults = [];
     }
   },
   actions: {
@@ -394,7 +401,21 @@ export default createStore({
       } finally {
         commit('SET_WEATHER_LOADING', false);
       }
-    }
+    },
+    // 设置当前位置（关键修改点）
+    async setCurrentLocation({ commit }, city) {
+      try {
+        const response = await axios.post(apiEndpoints.setCurrentLocation, city);
+        if (response.status === 200) {
+          commit('SET_SELECTED_CITY', city); // 更新 Vuex 状态
+          console.log('当前位置设置成功');
+        } else {
+          console.error('设置当前位置失败:', response.data.message);
+        }
+      } catch (error) {
+        console.error('设置当前位置网络错误:', error);
+      }
+    },
   },
   modules: {}
 });    
